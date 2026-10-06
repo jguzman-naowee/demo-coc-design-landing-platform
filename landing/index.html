@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ciclo Olímpico · Eventos</title>
+  <meta name="description" content="Prototipo del landing público de eventos del Ciclo Olímpico.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- brand.css / base.css son Tailwind v4 (@theme): no ejecutan como CSS plano.
+       Sus valores se copiaron a variables --lp-* en shell.css. -->
+  <link rel="stylesheet" href="shell.css">
+  <link rel="stylesheet" href="tabs/tabs.css">
+</head>
+<body>
+  <a class="lp-skip" href="#lp-main" data-skip>Ir al contenido</a>
+  <div id="app"></div>
+
+  <script src="../shared/real/model.js"></script>
+  <script src="../shared/data.js"></script>
+  <script src="tabs/calendario-resultados.js"></script>
+  <script src="tabs/deportes.js"></script>
+  <script src="tabs/medalleria.js"></script>
+  <script src="app.js"></script>
+<script src="../shared/switcher.js" data-current="landing"></script>
+</body>
+</html>

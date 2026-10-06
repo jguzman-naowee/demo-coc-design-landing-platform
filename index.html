@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototipos · Eventos Ciclo Olímpico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f5f6fa;--card:#fff;--line:#e3e5ef;--ink:#20212b;--mut:#5a5c70;--plat:#1f55d6;--land:#2e2dc4;--acc:#e8b923}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Mulish,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+  main{max-width:1040px;margin:0 auto;padding:48px 24px 64px}
+  h1{font-size:28px;margin:0 0 6px}
+  .sub{color:var(--mut);margin:0 0 28px}
+  .warn{display:none;margin:0 0 24px;padding:12px 16px;border-radius:12px;background:#fff6d6;border:1px solid #ecd27a;color:#5b4700;font-size:14px}
+  .warn code{background:rgba(0,0,0,.07);padding:1px 6px;border-radius:6px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
+  .card header{padding:22px 24px 18px;color:#fff}
+  .card.plat header{background:var(--plat)}
+  .card.land header{background:var(--land)}
+  .card h2{margin:0 0 4px;font-size:22px}
+  .card header p{margin:0;font-size:14px;opacity:.9}
+  .enter{display:inline-flex;align-items:center;gap:8px;margin:18px 24px 6px;min-height:44px;padding:0 20px;border-radius:12px;font-weight:700;text-decoration:none;align-self:flex-start;color:#fff}
+  .plat .enter{background:var(--plat)}.land .enter{background:var(--land)}
+  .enter:focus-visible,.links a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+  .links{list-style:none;margin:0;padding:6px 24px 22px}
+  .links li{border-top:1px solid var(--line)}
+  .links a{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:48px;padding:10px 0;color:var(--ink);text-decoration:none;font-size:15px}
+  .links a:hover{color:var(--plat)}.land .links a:hover{color:var(--land)}
+  .links small{color:var(--mut);font-size:13px;white-space:nowrap}
+  .note{margin-top:28px;color:var(--mut);font-size:14px}
+  .note b{color:var(--ink)}
+  @media (max-width:760px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Prototipos · Eventos Ciclo Olímpico</h1>
+  <p class="sub">La misma experiencia con la piel de cada front. Fecha simulada: 18 de septiembre de 2026.</p>
+
+  <p class="warn" id="warn" role="note">Estás abriendo esto como archivo local. Algunas piezas (componentes Stencil) necesitan un servidor: en esta carpeta ejecuta <code>python3 -m http.server 4300</code> y abre <code>http://localhost:4300/</code>.</p>
+
+  <div class="grid">
+    <section class="card plat" aria-labelledby="t-plat">
+      <header><h2 id="t-plat">Plataforma</h2><p>Naowee Suite · app interna (SDK foundations, Inter)</p></header>
+      <a class="enter" href="platform/index.html#/eventos">Entrar a la plataforma →</a>
+      <ul class="links">
+        <li><a href="platform/index.html#/eventos"><span>Listado de eventos</span><small>tarjetas y calendario</small></a></li>
+        <li><a href="platform/index.html#/eventos/jja-2026?tab=calendario-resultados"><span>Calendario y resultados</span><small>evento internacional · en curso</small></a></li>
+        <li><a href="platform/index.html#/eventos/jja-2026?tab=deportes"><span>Deportes</span><small>lista y pruebas</small></a></li>
+        <li><a href="platform/index.html#/eventos/jja-2026?tab=medalleria"><span>Medallería</span><small>Top 5 + Colombia</small></a></li>
+        <li><a href="platform/index.html#/eventos/jja-2026?tab=deportistas"><span>Deportistas</span><small>inscritos</small></a></li>
+        <li><a href="platform/index.html#/eventos/jja-2026?tab=dashboard"><span>Dashboard</span><small>espacio reservado</small></a></li>
+        <li><a href="platform/index.html#/eventos/copa-coc-cali-2026?tab=medalleria"><span>Evento finalizado</span><small>medallería por país</small></a></li>
+      </ul>
+    </section>
+
+    <section class="card land" aria-labelledby="t-land">
+      <header><h2 id="t-land">Landing</h2><p>Ciclo Olímpico · sitio público (marca de producción, Mulish)</p></header>
+      <a class="enter" href="landing/index.html#/">Entrar al landing →</a>
+      <ul class="links">
+        <li><a href="landing/index.html#/"><span>Portada</span><small>eventos por estado y soporte</small></a></li>
+        <li><a href="landing/index.html#/eventos/jja-2026?tab=calendario-resultados"><span>Calendario y resultados</span><small>evento internacional · en curso</small></a></li>
+        <li><a href="landing/index.html#/eventos/jja-2026?tab=deportes"><span>Deportes</span><small>lista y pruebas</small></a></li>
+        <li><a href="landing/index.html#/eventos/jja-2026?tab=medalleria"><span>Medallería</span><small>Top 5 + Colombia</small></a></li>
+        <li><a href="landing/index.html#/eventos/copa-coc-cali-2026"><span>Evento finalizado</span><small>Medallería · Dashboard · Deportes</small></a></li>
+        <li><a href="landing/index.html#/eventos/intercolegiados-2026"><span>Evento próximo</span><small>aún sin resultados</small></a></li>
+        <li><a href="landing/index.html#/soporte"><span>Formulario de soporte</span><small>en la portada</small></a></li>
+      </ul>
+    </section>
+  </div>
+
+  <p class="note">Dentro de cada prototipo hay un <b>conmutador flotante</b> (arriba a la derecha, arrastrable) para pasar de Plataforma a Landing conservando la ruta y los filtros. Detalles y contrato en <a href="SPEC.md">SPEC.md</a>.</p>
+</main>
+<script>
+  if (location.protocol === 'file:') document.getElementById('warn').style.display = 'block';
+</script>
+</body>
+</html>
