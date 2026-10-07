@@ -184,16 +184,21 @@
 
   function subFase(p) { return esc([p.ronda, p.escenario].filter(Boolean).join(' · ')); }
 
+  /* Identidad única de la prueba (DC-044): misma caja y columna en pasado, presente y futuro. */
+  function identidadPrueba(p) {
+    return '<span class="lp-rr-wt"><span class="lp-ttl"><b>' + esc(p.nombre) + '</b></span><span class="lp-rr-mt">' + LPT.sexoTag(p.sexo, p.sexoNombre) + '<span class="lp-sub" title="' + subFase(p) + '">' + subFase(p) + '</span></span></span>';
+  }
+
   function filaPrueba(p, ctx, ui, comentar) {
     if (!hayResultado(p)) {
       /* Sin resultado: solo la cabecera (DC-130: sin chip de colombianos). */
-      return '<div class="lp-rr lp-rr-pend"><div class="lp-rr-hd"><div class="lp-rr-wt lp-rr-wt-p"><span class="lp-ttl"><b>' + esc(p.nombre) + '</b>' + LPT.sexoTag(p.sexo, p.sexoNombre) + '</span><span class="lp-sub">' + subFase(p) + '</span></div>' +
+      return '<div class="lp-rr lp-rr-pend"><div class="lp-rr-hd">' + identidadPrueba(p) +
         '<div class="lp-rr-ac">' + LPT.estadoBadge(p.estado, true) + '</div></div></div>';
     }
     var abierta = p.id in ui.p ? ui.p[p.id] : (p.estado === 'En vivo' || p.participa);
     return '<div class="lp-rr"><div class="lp-rr-hd">' +
       '<button type="button" class="lp-tgb" data-p="' + esc(p.id) + '" aria-expanded="' + abierta + '" aria-controls="lp-b-' + esc(p.id) + '">' +
-      '<span class="lp-rr-wt"><span class="lp-ttl"><b>' + esc(p.nombre) + '</b>' + LPT.sexoTag(p.sexo, p.sexoNombre) + '</span><span class="lp-sub">' + subFase(p) + '</span></span>' +
+      identidadPrueba(p) +
       '<span class="lp-rr-ac">' + medallaFase(p) + LPT.estadoBadge(p.estado, true) + '</span>' + LPT.svg('chev', 'lp-chev lp-chev-s') + '</button></div>' +
       '<div class="lp-rs" id="lp-b-' + esc(p.id) + '"' + (abierta ? '>' + cuerpoFase(p, ctx, comentar) : ' hidden data-lazy="' + esc(p.id) + '">') + '</div></div>';
   }
@@ -229,10 +234,11 @@
     return h + '</select>' + LPT.svg('chev') + '</div></div>';
   }
 
-  /* Encabezado de la prueba, común al detalle y al modal (DC-200); idT solo en el modal. */
+  /* Encabezado común al detalle y al modal (DC-200); idT solo en el modal. */
+  /* DC-001: en el modal el estado va a la derecha del tag de género, dentro del título. */
   function encabezado(p, idT) {
-    return '<div class="lp-rr-hd"><div class="lp-rr-wt"><span class="lp-ttl"' + (idT ? ' id="' + idT + '"' : '') + '><b>' + esc(p.nombre) + '</b>' + LPT.sexoTag(p.sexo, p.sexoNombre) + '</span>' +
-      '<span class="lp-sub">' + esc(p.deporteNombre) + ' · ' + subFase(p) + ' · ' + esc(OLC.fechaLarga(p.fecha)) + '</span></div><div class="lp-rr-ac">' + LPT.estadoBadge(p.estado) + '</div></div>';
+    return '<div class="lp-rr-hd"><div class="lp-rr-wt"><span class="lp-ttl"' + (idT ? ' id="' + idT + '"' : '') + '><b>' + esc(p.nombre) + '</b>' + LPT.sexoTag(p.sexo, p.sexoNombre) + (idT ? LPT.estadoBadge(p.estado) : '') + '</span>' +
+      '<span class="lp-sub">' + esc(p.deporteNombre) + ' · ' + subFase(p) + ' · ' + esc(OLC.fechaLarga(p.fecha)) + '</span></div>' + (idT ? '' : '<div class="lp-rr-ac">' + LPT.estadoBadge(p.estado) + '</div>') + '</div>';
   }
 
   function detalle(el, ctx, p, modal) {
@@ -351,6 +357,9 @@
         selectField('lp-f-pru', 'Prueba', ui.prueba, nombres.map(function (n) { return [n, n]; }), 'Todas las pruebas') +
         selectField('lp-f-sex', 'Género', sexo, LPT.sexosDe(data).map(function (k) { return [k, LPT.SEXOS.filter(function (o) { return o[0] === k; })[0][1]]; }), 'Todos') +
         selectField('lp-f-ron', 'Ronda', ui.ronda, rondas.map(function (n) { return [n, n]; }), 'Todas las rondas');
+      /* DC-101: deshabilitado (no oculto) sin filtros, para que la tarjeta no cambie de alto. */
+      var hayFiltro = !!(pr.deporte || pr.sexo || depSel || sexo || ui.prueba || ui.ronda || (hayCol && !solo));
+      if (fl) fl += '<div class="lp-fl-act"><button type="button" class="lp-btn lp-fl-clr" data-fl-limpiar' + (hayFiltro ? '' : ' disabled aria-disabled="true"') + '>Limpiar filtros</button></div>';
       var h = '<div class="lp-tab lp-cal">' + miniCal(data, ctx, dia, ui, porDia) + '<div class="lp-cr"><aside class="lp-aside" aria-label="Filtros">' +
         (fl ? '<div class="lp-fl">' + fl + '</div>' : '') + '</aside><section class="lp-day" aria-labelledby="lp-h-dia">';
 
@@ -414,6 +423,38 @@
       /* Día seleccionado siempre centrado en la tira (sin mover la página en vertical). */
       var tira = el.querySelector('.lp-strip'), cen = tira && tira.querySelector('.lp-dd.sel');
       if (cen) tira.scrollLeft += (cen.getBoundingClientRect().left + cen.offsetWidth / 2) - (tira.getBoundingClientRect().left + tira.clientWidth / 2);
+      /* DC-067: centinela + IntersectionObserver alternan is-stuck; se limpia al redibujar, cambiar de pestaña o redimensionar. */
+      if (el._lpMiniOff) el._lpMiniOff();
+      var mini = el.querySelector('.lp-mini'), cal = mini && mini.parentNode;
+      if (mini) {
+        var sent = document.createElement('div'); sent.className = 'lp-mini-sent'; sent.setAttribute('aria-hidden', 'true'); cal.insertBefore(sent, mini);
+        var io = null, onRes = null, ro = null;
+        var recentra = function () {
+          var t = mini.querySelector('.lp-strip'), s = t && t.querySelector('.lp-dd.sel');
+          if (s) t.scrollLeft += (s.getBoundingClientRect().left + s.offsetWidth / 2) - (t.getBoundingClientRect().left + t.clientWidth / 2);
+        };
+        var mide = function () { /* DC-073: distancia del contenedor a los bordes del viewport (sin scrollbar) para el full width */
+          var r = cal.getBoundingClientRect(), w = document.documentElement.clientWidth;
+          mini.style.setProperty('--lp-fw-l', Math.max(0, r.left) + 'px'); mini.style.setProperty('--lp-fw-r', Math.max(0, w - r.right) + 'px');
+        };
+        var fija = function (v) { if (mini.classList.contains('is-stuck') !== v) { mini.classList.toggle('is-stuck', v); recentra(); } };
+        var limpia = function () { if (io) io.disconnect(); io = null; if (ro) ro.disconnect(); ro = null; window.removeEventListener('resize', onRes); delete el._lpMiniOff; };
+        var arma = function () {
+          if (io) io.disconnect(); io = null;
+          if (!el.contains(mini)) return limpia();
+          var off = parseFloat(getComputedStyle(mini).top);
+          if (getComputedStyle(mini).position !== 'sticky' || isNaN(off)) { fija(false); return; }
+          fija(sent.getBoundingClientRect().bottom <= off);
+          io = new IntersectionObserver(function (es) { var e = es[es.length - 1]; fija(e.boundingClientRect.bottom <= off); }, { rootMargin: '-' + off + 'px 0px 0px 0px', threshold: [0, 1] });
+          io.observe(sent);
+        };
+        onRes = function () { mide(); arma(); };
+        window.addEventListener('resize', onRes);
+        el._lpMiniOff = limpia;
+        mide(); arma();
+        /* DC-052: al aparecer la barra de scroll cambia el ancho sin 'resize'; remedir evita 8px de desborde. */
+        if (window.ResizeObserver) { ro = new ResizeObserver(mide); ro.observe(cal); }
+      }
       el.querySelectorAll('[data-mes]').forEach(function (b) {
         b.addEventListener('click', function () { var m = b.getAttribute('data-mes'); if (m) { ui.mes = m; redraw(); } });
       });
@@ -423,6 +464,10 @@
       if (ron) ron.addEventListener('change', function () { ui.ronda = ron.value; redraw('lp-f-ron'); });
       var sex = el.querySelector('#lp-f-sex');
       if (sex) sex.addEventListener('change', function () { ctx.go({ sexo: sex.value }); });
+      var clr = el.querySelector('[data-fl-limpiar]');
+      if (clr) clr.addEventListener('click', function () { ui.prueba = ''; ui.ronda = ''; ui.focoLimpiar = true; ctx.go({ deporte: '', sexo: '', colombia: '' }); });
+      /* Tras limpiar el botón queda deshabilitado: el foco pasa al primer control del panel. */
+      if (ui.focoLimpiar) { ui.focoLimpiar = false; var f0 = clr && !clr.disabled ? clr : el.querySelector('.lp-fl button:not([disabled]), .lp-fl select'); if (f0) f0.focus({ preventScroll: true }); }
       var lim = el.querySelector('[data-limpiar]');
       if (lim) lim.addEventListener('click', function () { ui.prueba = ''; ui.ronda = ''; ctx.go({ sexo: '', colombia: '0', deporte: '' }); });
 
@@ -458,7 +503,10 @@
       function mItems() { return Array.prototype.slice.call(mm.querySelectorAll('[role=menuitem]')); }
       function mPos() {
         var r = mb.getBoundingClientRect(), w = mm.offsetWidth, vw = document.documentElement.clientWidth;
-        mm.style.top = Math.min(r.bottom + 6, window.innerHeight - mm.offsetHeight - 8) + 'px';
+        var h = mm.offsetHeight, abajo = r.bottom + 6, arriba = r.top - 6 - h;
+        /* DC-051: pegado al icono; si abajo no cabe se voltea arriba, y si el icono sale de la vista se cierra. */
+        if (r.bottom < 0 || r.top > window.innerHeight) return mCerrar();
+        mm.style.top = (abajo + h <= window.innerHeight - 8 ? abajo : arriba >= 8 ? arriba : Math.max(8, window.innerHeight - h - 8)) + 'px';
         mm.style.left = Math.max(8, Math.min(r.right - w, vw - w - 8)) + 'px';
       }
       function mCerrar(foco) {

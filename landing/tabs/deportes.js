@@ -26,6 +26,7 @@
         });
         return { lista: lista, porDep: porDep, fases: fases };
       })());
+      var UMBRAL_BUSCADOR = 8; /* DC-027: el buscador #lp-q solo aparece con MÁS de 8 pruebas */
       var estG = function (g) { return g.vivo ? 'En vivo' : g.pend ? 'Programado' : 'Finalizado'; };
       var nPruebas = function (n) { return n + (n === 1 ? ' prueba' : ' pruebas'); }; /* DC-192 */
       var nFases = function (n) { return n + (n === 1 ? ' fase' : ' fases'); };
@@ -33,21 +34,22 @@
         return { d: d, n: (ix.porDep[d.codigo] || []).filter(porSexo).length };
       });
       var qd = L.norm(ui.qd.trim());
-      /* solo deportes con pruebas bajo el filtro de sexo */
-      var conPruebas = deps.filter(function (o) { return o.n > 0; });
-      var lista = conPruebas.filter(function (o) { return !qd || L.norm(o.d.nombre).indexOf(qd) >= 0; });
-      var sel = (conPruebas.filter(function (o) { return o.d.codigo === pr.deporte; })[0] || conPruebas[0] || deps[0]).d;
+      /* DC-074: como la plataforma, el género solo recalcula conteos; ningún deporte se oculta ni se cambia el seleccionado. */
+      var lista = deps.filter(function (o) { return !qd || L.norm(o.d.nombre).indexOf(qd) >= 0; });
+      var sel = (deps.filter(function (o) { return o.d.codigo === pr.deporte; })[0] || deps[0]).d;
 
       var delSel = ix.porDep[sel.codigo] || [], fSel = ix.fases[sel.codigo] || 0;
       /* DC-197: contenedor ≤720px = grilla de deportes + modal con el panel (el estado vive en la URL: modal=1). */
       var esCompacto = function () { return el.clientWidth > 0 && (el.clientWidth <= 720 || window.innerWidth <= 760); };
       var compact = esCompacto(), abierto = compact && pr.modal === '1';
       var fresh = ui.fresh; ui.fresh = false;
-      var anillo = lista.some(function (o) { return o.d.codigo === sel.codigo; }) ? lista : conPruebas;
+      var anillo = lista.some(function (o) { return o.d.codigo === sel.codigo; }) ? lista : deps;
       var ai = anillo.map(function (o) { return o.d.codigo; }).indexOf(sel.codigo);
       var vecino = function (k) { return anillo[(ai + k + anillo.length) % anillo.length].d; };
 
-      var q = L.norm(ui.q.trim()), buscando = q !== '';
+      /* DC-027: con 8 pruebas o menos el buscador no aplica; un q previo se ignora. */
+      var hayBuscador = delSel.length > UMBRAL_BUSCADOR;
+      var q = hayBuscador ? L.norm(ui.q.trim()) : '', buscando = q !== '';
       var universo = (buscando ? ix.lista : delSel).filter(porSexo);
       var filas = universo.filter(function (p) { return !q || L.norm(p.nombre + ' ' + p.deporteNombre).indexOf(q) >= 0; });
       filas.sort(function (a, b) {
@@ -71,7 +73,7 @@
       h += '<nav class="lp-dp-l" aria-label="Deportes"><div class="lp-search"><span aria-hidden="true">' + L.svg('search') + '</span><input type="search" id="lp-qd" placeholder="Buscar deporte" aria-label="Buscar deporte" value="' + esc(ui.qd) + '"></div><ul class="lp-dp-list">';
       lista.forEach(function (o) {
         var cur = o.d.codigo === sel.codigo;
-        if (compact) { h += '<li><button type="button" class="lp-dp-it lp-dp-card" data-dep="' + esc(o.d.codigo) + '" aria-haspopup="dialog"><span class="lp-dp-ic">' + L.sportIcon(o.d.codigo) + '</span><span class="lp-dp-ct"><span class="lp-nm">' + esc(o.d.nombre) + '</span><span class="lp-n">' + nPruebas(o.n) + '</span></span></button></li>'; return; }
+        if (compact) { h += '<li><button type="button" class="lp-dp-it lp-dp-card" data-dep="' + esc(o.d.codigo) + '" aria-haspopup="dialog"><span class="lp-dp-ic">' + L.sportIcon(o.d.codigo) + '</span><span class="lp-dp-ct"><span class="lp-nm">' + esc(o.d.nombre) + '</span><span class="lp-n">' + nPruebas(o.n) + '</span></span><span class="lp-dp-chev" aria-hidden="true">' + L.svg('right', 'lp-i-s') + '</span></button></li>'; return; }
         h += '<li><a class="lp-dp-it" href="' + esc(ctx.href({ deporte: o.d.codigo })) + '"' + (cur ? ' aria-current="true"' : '') + '><span class="lp-dp-ic">' + L.sportIcon(o.d.codigo) + '</span><span class="lp-nm">' + esc(o.d.nombre) + '</span><span class="lp-n">' + o.n + '<span class="lp-sr"> pruebas</span></span></a></li>';
       });
       if (!lista.length) h += '<li class="lp-dp-none">Ningún deporte coincide.</li>';
@@ -81,26 +83,26 @@
       var hp = '<section class="lp-dp-p" aria-labelledby="lp-dp-h"><div class="lp-dp-ph"><span class="lp-dp-ic lp-dp-ic-l">' + L.sportIcon(sel.codigo) + '</span><div class="lp-dp-t"><h2 id="lp-dp-h">' + esc(sel.nombre) + '</h2>' +
         '<div class="lp-dp-sum"><b>' + delSel.length + (delSel.length === 1 ? ' prueba' : ' pruebas') + '</b>' + (fSel > delSel.length ? nFases(fSel) : '') + '</div></div>' +
         '<a class="lp-ibtn lp-ibtn-cal" href="' + esc(ctx.href({ tab: 'calendario-resultados', deporte: sel.codigo, sexo: sexo, modal: '' })) + '" aria-label="Ver en Calendario y resultados" title="Ver en Calendario y resultados"><span>Calendario y resultados</span>' + ICO_CAL + '</a>' + (abierto ? '<button type="button" class="lp-dp-mx" data-mclose autofocus aria-label="Cerrar">' + L.svg('x') + '</button>' : '') + '</div>' +
-        (abierto && anillo.length > 1 ? '<div class="lp-dp-mn"><button type="button" class="lp-dp-mb" data-vec="' + esc(vecino(-1).codigo) + '" data-k="p" aria-label="Deporte anterior: ' + esc(vecino(-1).nombre) + '">' + L.svg('left') + '<span><small>Anterior</small><b>' + esc(vecino(-1).nombre) + '</b></span></button><button type="button" class="lp-dp-mb lp-dp-mb-n" data-vec="' + esc(vecino(1).codigo) + '" data-k="n" aria-label="Deporte siguiente: ' + esc(vecino(1).nombre) + '"><span><small>Siguiente</small><b>' + esc(vecino(1).nombre) + '</b></span>' + L.svg('right') + '</button></div>' : '') +
         (abierto ? '<div class="lp-dp-body">' : '') +
-        '<div class="lp-dp-bar"><div class="lp-search lp-search-p"><span aria-hidden="true">' + L.svg('search') + '</span><input type="search" id="lp-q" placeholder="Buscar prueba" aria-label="Buscar prueba en todos los deportes" value="' + esc(ui.q) + '">' +
-        (ui.q ? '<button type="button" class="lp-x" data-clear aria-label="Limpiar búsqueda">' + L.svg('x') + '</button>' : '') + '</div>' +
+        '<div class="lp-dp-bar">' + (hayBuscador ? '<div class="lp-search lp-search-p"><span aria-hidden="true">' + L.svg('search') + '</span><input type="search" id="lp-q" placeholder="Buscar prueba" aria-label="Buscar prueba en todos los deportes" value="' + esc(ui.q) + '">' +
+        (ui.q ? '<button type="button" class="lp-x" data-clear aria-label="Limpiar búsqueda">' + L.svg('x') + '</button>' : '') + '</div>' : '') +
         L.segSexo(ctx) + '</div>';
 
       if (!filas.length) {
-        hp += '<div class="lp-empty"><p>Ninguna prueba coincide con «' + esc(ui.q.trim()) + '».</p><button type="button" class="lp-btn" data-clear>Limpiar búsqueda</button></div>';
+        hp += '<div class="lp-empty">' + (buscando ? '<p>Ninguna prueba coincide con «' + esc(ui.q.trim()) + '».</p><button type="button" class="lp-btn" data-clear>Limpiar búsqueda</button>' : '<p><b>Ninguna prueba con este filtro.</b></p><p>Pruebe con otro género.</p>') + '</div>';
       } else {
         hp += '<table class="lp-pt"><thead><tr><th scope="col">Prueba</th><th scope="col">Estado</th><th scope="col"><span class="lp-sr">Ver en Calendario y resultados</span></th></tr></thead>';
         pagina.forEach(function (g, i) {
           var conRes = g.vivo || !g.pend; /* DC-190: sin resultados no hay flecha */
-          hp += '<tbody><tr' + (i % 2 || !conRes ? ' class="' + (i % 2 ? 'lp-z' : '') + (conRes ? '' : (i % 2 ? ' ' : '') + 'lp-nogo') + '"' : '') + '><td class="lp-c-pr"><span class="lp-pn"><b>' + resaltar(g.nombre) + '</b>' + sexIco(g.sexo, g.sexoNombre) + (buscando ? '<span class="lp-chipd">' + esc(g.deporteNombre) + '</span>' : '') + '</span><span class="lp-fs">' + nPruebas(g.fases) + '</span></td>' +
-            '<td class="lp-c-st">' + L.estadoBadge(estG(g), true) + '</td><td class="lp-c-go">' + (conRes ? '<a class="lp-ibtn lp-ibtn-s" href="' + esc(ctx.href({ tab: 'calendario-resultados', prueba: g.pid || g.uid, modal: '' })) + '" aria-label="Ver ' + esc(g.nombre) + ' ' + esc(g.sexoNombre) + ' en Calendario y resultados" title="Ver en Calendario y resultados">' + L.svg('arrow', 'lp-i-s') + '</a>' : '') + '</td></tr></tbody>';
+          hp += '<tbody><tr' + (i % 2 || !conRes ? ' class="' + (i % 2 ? 'lp-z' : '') + (conRes ? '' : (i % 2 ? ' ' : '') + 'lp-nogo') + '"' : '') + '><td class="lp-c-pr"><span class="lp-pn lp-pn-id"><span class="lp-pn-bx"><b>' + resaltar(g.nombre) + '</b></span><span class="lp-rr-mt"><span class="lp-pn-tg">' + sexIco(g.sexo, g.sexoNombre) + (buscando ? '<span class="lp-chipd">' + esc(g.deporteNombre) + '</span>' : '') + '</span><span class="lp-fs" title="' + nPruebas(g.fases) + '">' + nPruebas(g.fases) + '</span></span></span></td>' +
+            '<td class="lp-c-st">' + L.estadoBadge(estG(g), true) + '</td><td class="lp-c-go">' + (conRes ? '<a class="lp-ibtn lp-ibtn-s" href="' + esc(ctx.href({ tab: 'calendario-resultados', dia: g.pend || g.ult, deporte: g.deporte, sexo: g.sexo, prueba: '', modal: '' })) + '" aria-label="Ver resultado de ' + esc(g.nombre) + ' ' + esc(g.sexoNombre) + '" title="Ver resultado">' + L.svg('right', 'lp-i-s') + '</a>' : '') + '</td></tr></tbody>';
         });
         hp += '</table>';
         /* DC-141/142: tamaño fijo 10, sin «Mostrando» ni «Por página»; una sola página no se pinta. */
         if (pages > 1) hp += '<nav class="lp-dp-pg" aria-label="Paginación"><div class="lp-pager"><button type="button" data-pg="' + (ui.page - 1) + '" aria-label="Página anterior"' + (ui.page <= 1 ? ' disabled' : '') + '>' + L.svg('left') + '</button><span class="lp-dp-pn">Página <b>' + ui.page + '</b> de ' + pages + '</span><button type="button" data-pg="' + (ui.page + 1) + '" aria-label="Página siguiente"' + (ui.page >= pages ? ' disabled' : '') + '>' + L.svg('right') + '</button></div></nav>';
       }
-      hp += (abierto ? '</div>' : '') + '</section>';
+      /* DC-023: la navegación va al final del cuerpo con scroll, pegada abajo (sticky) */
+      hp += (abierto ? (abierto && anillo.length > 1 ? '<div class="lp-dp-mn"><button type="button" class="lp-dp-mb" data-vec="' + esc(vecino(-1).codigo) + '" data-k="p" aria-label="Deporte anterior: ' + esc(vecino(-1).nombre) + '">' + L.svg('left') + '<span><small>Anterior</small><b>' + esc(vecino(-1).nombre) + '</b></span></button><button type="button" class="lp-dp-mb lp-dp-mb-n" data-vec="' + esc(vecino(1).codigo) + '" data-k="n" aria-label="Deporte siguiente: ' + esc(vecino(1).nombre) + '"><span><small>Siguiente</small><b>' + esc(vecino(1).nombre) + '</b></span>' + L.svg('right') + '</button></div>' : '') + '</div>' : '') + '</section>';
       h += (abierto ? '<dialog class="lp-dp-m' + (fresh ? ' lp-dp-m-in' : '') + '" aria-modal="true" aria-labelledby="lp-dp-h">' + hp + '</dialog>' : compact ? '' : hp) + '</div>';
 
       /* sedes */

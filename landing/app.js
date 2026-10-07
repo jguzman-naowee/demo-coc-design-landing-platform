@@ -80,12 +80,27 @@
   var lastPath = null;
   var lastTab = null;
 
+  /* DC-047: con los tabs ya pegados, al cambiar de pestaña el scroll queda donde empieza su contenido; si aún se ve el hero no se mueve. */
+  function alInicio(y) {
+    var nav = document.querySelector('.lp-tabnav'), info = document.getElementById('lp-info'), pnl = document.getElementById('lp-panel');
+    var cont = info && !info.hidden ? info : pnl, st = getComputedStyle(document.documentElement);
+    if (!nav || !cont) return y;
+    var hh = parseFloat(st.getPropertyValue('--lp-hh')) || 0, nh = nav.getBoundingClientRect().height;
+    var pegado = y >= nav.getBoundingClientRect().top + window.scrollY - hh - 1;
+    if (!pegado) return y;
+    return Math.max(0, Math.round(cont.getBoundingClientRect().top + window.scrollY - hh - nh));
+  }
+
   function render() {
     var r = parseHash();
-    timers.forEach(clearInterval); timers = [];
     var changed = r.path !== lastPath;
     var y = window.scrollY;
     var out = r.view === 'detail' ? detailView(r) : r.view === 'list' ? listView(r) : homeView(r);
+    /* Mismo evento: solo cambia el panel; la nav pegada y el header no se reemplazan (DC-092). */
+    if (!changed && out.panel && document.getElementById('lp-panel') && document.querySelector('.lp-tabnav')) {
+      var cambio = out.panel(); window.scrollTo({ top: cambio ? alInicio(y) : y, behavior: 'instant' }); lastPath = r.path; return;
+    }
+    timers.forEach(clearInterval); timers = [];
     document.title = out.title + ' · Ciclo Olímpico';
     app.innerHTML = header() + '<main id="lp-main" tabindex="-1">' + out.html + '</main>' + footer();
     document.body.classList.remove('lp-lock');
@@ -271,7 +286,7 @@
       '<div class="lp-wrap lp-footer__in"><a class="lp-footer__logo" href="#/">' + fallbackImg('logos/logo-footer.webp', 'Comité Olímpico Colombiano', 'Comité Olímpico Colombiano') + '</a>' +
       '<nav class="lp-footer__cols" aria-label="Mapa del sitio">' + cols +
       '<div><h2>Redes</h2><ul class="lp-social">' + soc + '</ul><h2 class="lp-footer__sup">Soporte</h2>' +
-      '<button type="button" class="lp-supbtn" data-support>' + IC.msg + 'Reporta una novedad</button></div></nav></div>' +
+      '<button type="button" class="lp-supbtn" data-support>' + IC.msg + 'Reporta novedad</button></div></nav></div>' +
       '<p class="lp-wrap lp-copy">© 2026 Comité Olímpico Colombiano · Todos los derechos reservados</p></footer>' +
       '<dialog class="lp-dlg" id="lp-support" aria-labelledby="lp-dlg-t"><div class="lp-dlg__in" id="lp-dlg-box"></div></dialog>';
   }
@@ -576,43 +591,48 @@
   var TABS = {
     'calendario-resultados': 'Calendario y resultados',
     'medalleria': 'Medallería',
-    'deportes': 'Deportes'
+    'deportes': 'Deportes',
+    'informacion': 'Información'
   };
-  /* Deportes primero y por defecto (DC-053), sin importar el estado del evento. */
-  var ORDEN_TABS = ['deportes', 'calendario-resultados', 'medalleria'];
+  /* Información primero y por defecto en todo evento; Deportes le sigue. */
+  var ORDEN_TABS = ['informacion', 'deportes', 'calendario-resultados', 'medalleria'];
+  /* DC-043: un evento Próximo aún no tiene resultados, así que la pestaña solo dice «Calendario». */
+  function etiquetaCalendario(estado) { return estado === 'Próximo' ? 'Calendario' : TABS['calendario-resultados']; }
 
   /* La descripción del fixture trae una nota técnica entre paréntesis: no es texto de usuario. */
   function limpiarDesc(t) { return String(t || '').replace(/\s*\(descripción derivada[^)]*\)/i, ''); }
-  /* Contador del hero (DC-177/178): palabras sueltas y cada número en su cardsita; el aria-label lleva el texto completo. */
+  /* Contador del hero (DC-002/003): el texto va fuera y solo la cifra (9/15, 59) en el chip; el aria-label lleva el texto completo. */
   function contador(ev, estado) {
     var w = function (t) { return '<span class="lp-ctd__w" aria-hidden="true">' + t + '</span>'; };
     var n = function (v) { return '<span class="lp-ctd__n" aria-hidden="true">' + v + '</span>'; };
     var inner, label;
     if (estado === 'Próximo') {
       var d = dias(OLC.HOY, ev.inicio);
-      label = d === 1 ? 'Falta 1 día' : 'Faltan ' + d + ' días';
-      inner = w(d === 1 ? 'Falta' : 'Faltan') + n(d) + w(d === 1 ? 'día' : 'días');
+      label = d === 1 ? '1 día que falta' : d + ' días que faltan';
+      inner = w(d === 1 ? 'Día que falta' : 'Días que faltan') + n(d);
     } else if (estado === 'En curso') {
       var a = dias(ev.inicio, OLC.HOY) + 1, t = dias(ev.inicio, ev.fin) + 1;
       label = 'Día ' + a + ' de ' + t;
-      inner = w('Día') + n(a) + w('de') + n(t);
+      inner = w('Día') + n(a + '/' + t);
     } else return '';
     return '<div class="lp-ctd" role="group" aria-label="' + label + '">' + inner + '</div>';
   }
 
-  /* Nav de pestañas pegada (DC-179): el sentinel avisa cuándo toca el header y entonces gana el nombre. */
-  var tabnavIO = null;
+  /* Migas + tabs pegadas (DC-002): los tabs se anclan bajo el header y las migas, cuya altura se mide. */
+  var crumbRO = null;
   function wireTabnav() {
-    if (tabnavIO) { tabnavIO.disconnect(); tabnavIO = null; }
-    var nav = document.querySelector('.lp-tabnav'), sent = document.querySelector('.lp-tabnav__sent'), hd = document.querySelector('.lp-header');
-    if (!nav || !sent || !hd || !window.IntersectionObserver) return;
-    var h = hd.getBoundingClientRect().height;
-    document.documentElement.style.setProperty('--lp-hh', h + 'px');
-    tabnavIO = new IntersectionObserver(function (en) {
-      var e = en[en.length - 1];
-      nav.classList.toggle('is-stuck', !e.isIntersecting && e.boundingClientRect.top < (e.rootBounds ? e.rootBounds.top : h));
-    }, { rootMargin: '-' + Math.ceil(h) + 'px 0px 0px 0px', threshold: [0, 1] });
-    tabnavIO.observe(sent);
+    if (crumbRO) { crumbRO.disconnect(); crumbRO = null; }
+    var crumb = document.querySelector('.lp-crumb'), hd = document.querySelector('.lp-header'), nav = document.querySelector('.lp-tabnav');
+    if (!crumb || !hd) return;
+    var root = document.documentElement.style;
+    function set() {
+      var h = hd.getBoundingClientRect().height;
+      root.setProperty('--lp-hd', (h + 1) + 'px');
+      root.setProperty('--lp-hh', (h + 1 + crumb.getBoundingClientRect().height) + 'px');
+      if (nav) root.setProperty('--lp-nav-h', nav.getBoundingClientRect().height + 'px'); /* alto real de los tabs pegados */
+    }
+    set();
+    if (window.ResizeObserver) { crumbRO = new ResizeObserver(set); crumbRO.observe(crumb); if (nav) crumbRO.observe(nav); }
   }
   window.addEventListener('resize', function () { if (document.querySelector('.lp-tabnav')) wireTabnav(); });
 
@@ -630,23 +650,28 @@
     var tab = orden.indexOf(r.params.tab) >= 0 ? r.params.tab : orden[0];
     var ui = uiStore[ev.code] || (uiStore[ev.code] = {});
     var nav = orden.map(function (t) {
-      return '<a href="' + build(r.path, merge(r.params, { tab: t })) + '"' + (t === tab ? ' aria-current="page"' : '') + '>' + TABS[t] + '</a>';
+      return '<a href="' + build(r.path, merge(r.params, { tab: t })) + '"' + (t === tab ? ' aria-current="page"' : '') + '>' + (t === 'calendario-resultados' ? etiquetaCalendario(estado) : TABS[t]) + '</a>';
     }).join('');
     var sedes = ev.sedes || [];
-    var html =
-      '<div class="lp-crumb"><div class="lp-wrap"><a href="#/eventos">← Volver a eventos</a></div></div>' +
+    /* DC-112: el hero va entre el breadcrumb y la nav, fuera del panel; el contador sube a la fila de badges. */
+    var hero =
       '<section class="lp-dhero" aria-label="Encabezado del evento"><div class="lp-ph' + variante(ev.code) + '"><span class="lp-ph__tag">Foto del evento</span></div>' +
       '<div class="lp-hero__veil"></div><div class="lp-wrap lp-dhero__in"><div class="lp-dhero__copy">' +
-      (ev.ciclo ? '<div class="lp-dhero__badges"><span class="lp-cycle">Ciclo Olímpico</span></div>' : '') +
-      '<h1>' + esc(ev.nombre) + '</h1><p>' + esc(limpiarDesc(ev.descripcion)) + '</p>' + contador(ev, estado) + '</div></div></section>' +
-      '<section class="lp-facts" aria-label="Datos del evento"><div class="lp-wrap"><div class="lp-facts__card"><dl>' +
+      ((ev.ciclo || contador(ev, estado)) ? '<div class="lp-dhero__badges">' + (ev.ciclo ? '<span class="lp-cycle">Ciclo Olímpico</span>' : '') + contador(ev, estado) + '</div>' : '') +
+      '<h2 class="lp-dhero__title">' + esc(ev.nombre) + '</h2><p>' + esc(limpiarDesc(ev.descripcion)) + '</p></div></div></section>';
+    var info =
+      '<section class="lp-facts" aria-label="Datos del evento"><div class="lp-wrap"><div class="lp-facts__card"><dl class="lp-dl">' +
       fact(IC.cal, 'Fecha de inicio', OLC.fechaCorta(ev.inicio)) + fact(IC.cal, 'Fecha final', '<span class="lp-fact__row">' + OLC.fechaCorta(ev.fin) + pill(estado) + '</span>') + fact(IC.pin, 'Lugar', esc(ev.lugar)) +
       fact(IC.org, 'Organismo', esc(ev.organismo)) + fact(IC.globe, 'Alcance', 'Internacional · ' + data.evento.paises + ' países') +
-      '</dl>' + (sedes.length ? '<div class="lp-fsedes"><span class="lp-fsedes__label">Sedes <b>' + sedes.length + '</b></span><ul>' +
-      sedes.map(function (s) { return '<li class="lp-chip">' + esc(s) + '</li>'; }).join('') + '</ul></div>' : '') + '</div></div></section>' +
-      '<div class="lp-tabnav__sent" aria-hidden="true"></div>' +
-      '<nav class="lp-tabnav" aria-label="Secciones del evento"><div class="lp-tabnav__rel"><div class="lp-wrap lp-tabnav__row"><span class="lp-tabnav__name" aria-hidden="true">' + esc(ev.nombre) + '</span><div class="lp-tabnav__strip">' + nav + '</div></div><span class="lp-tabnav__fade" aria-hidden="true"></span></div></nav>' +
-      '<div class="lp-wrap lp-panel' + (lastTab !== null && lastTab !== r.code + tab ? ' lp-panel--in' : '') + '" id="lp-panel"></div>';
+      (sedes.length ? '<div class="lp-fact lp-fact--full"><dt>' + IC.pin + 'Sedes <b>' + sedes.length + '</b></dt><dd><ul class="lp-fsedes" aria-label="Sedes del evento">' +
+      sedes.map(function (x) { return '<li class="lp-chip">' + esc(x) + '</li>'; }).join('') + '</ul></dd></div>' : '') + '</dl></div></div></section>';
+    var html =
+      '<div class="lp-crumb"><div class="lp-wrap"><nav aria-label="Migas de pan"><ol><li><a href="#/eventos" aria-label="Volver a eventos">' + IC.prev + 'Eventos</a></li>' +
+      '<li><span class="lp-crumb__sep" aria-hidden="true">/</span><span class="lp-crumb__cur" aria-current="page">' + esc(ev.nombre) + '</span></li></ol></nav></div></div>' +
+      '<h1 class="lp-sr">' + esc(ev.nombre) + '</h1>' + hero +
+            '<nav class="lp-tabnav" aria-label="Secciones del evento"><div class="lp-tabnav__rel"><div class="lp-wrap lp-tabnav__row"><div class="lp-tabnav__strip">' + nav + '</div></div><span class="lp-tabnav__fade" aria-hidden="true"></span></div></nav>' +
+      '<div id="lp-info"' + (tab === 'informacion' ? '' : ' hidden') + '>' + info + '</div>' +
+      '<div class="lp-wrap lp-panel' + (lastTab !== null && lastTab !== r.code + tab ? ' lp-panel--in' : '') + '"' + (tab === 'informacion' ? ' hidden' : '') + ' id="lp-panel"></div>';
     lastTab = r.code + tab;
 
     var ctx = {
@@ -657,16 +682,54 @@
       },
       href: function (patch) { return build(r.path, merge(parseHash().params, patch)); }
     };
-    return { title: ev.nombre, html: html, after: function () {
-      wireTabnav();
-      var el = document.getElementById('lp-panel');
-      var strip = el.parentNode.querySelector('.lp-tabnav__strip a[aria-current]');
-      if (strip && strip.scrollIntoView) { var sc = strip.parentNode; sc.scrollLeft = strip.offsetLeft - 20; }
+    /* Render parcial: actualiza pestaña activa y enlaces de la nav, y vuelve a pintar solo #lp-panel. */
+    function panel() {
+      var el = document.getElementById('lp-panel'), root = el.parentNode;
+      var ant = document.activeElement, ruta = ant && el.contains(ant) ? rutaDe(el, ant) : null;
+      var cambioTab = el.getAttribute('data-tab') !== tab;
+      var infoEl = document.getElementById('lp-info');
+      infoEl.hidden = tab !== 'informacion'; el.hidden = tab === 'informacion';
+      root.querySelectorAll('.lp-tabnav__strip a').forEach(function (a, i) {
+        a.setAttribute('href', build(r.path, merge(r.params, { tab: orden[i] })));
+        if (orden[i] === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+      });
+      if (cambioTab) {
+        if (el._lpMiniOff) el._lpMiniOff();
+        el.setAttribute('data-tab', tab);
+        el.classList.remove('lp-panel--in'); void el.offsetWidth; el.classList.add('lp-panel--in');
+        var cur = root.querySelector('.lp-tabnav__strip a[aria-current]');
+        if (cur) cur.parentNode.scrollLeft = cur.offsetLeft - 20;
+      }
+      pintar(el);
+      if (ruta && !el.contains(document.activeElement)) { var f = resolverRuta(el, ruta); if (f && f.focus) f.focus({ preventScroll: true }); }
+      return cambioTab;
+    }
+    function pintar(el) {
+      if (tab === 'informacion') { el.innerHTML = ''; return; }
       var mod = window.Tabs && window.Tabs[tab];
       if (!mod) { el.innerHTML = '<div class="lp-wip">Sección en construcción</div>'; return; }
       try { mod.render(el, ctx); }
       catch (err) { el.innerHTML = '<div class="lp-wip">No se pudo mostrar esta sección.</div>'; if (window.console) console.error(err); }
+    }
+    return { title: ev.nombre, html: html, panel: panel, after: function () {
+      wireTabnav();
+      var el = document.getElementById('lp-panel');
+      var strip = el.parentNode.querySelector('.lp-tabnav__strip a[aria-current]');
+      if (strip && strip.scrollIntoView) { var sc = strip.parentNode; sc.scrollLeft = strip.offsetLeft - 20; }
+      el.setAttribute('data-tab', tab);
+      pintar(el);
     } };
+  }
+  /* Ruta de hijos hasta el control enfocado, para devolverle el foco tras repintar el panel. */
+  function rutaDe(raiz, n) {
+    var p = [];
+    while (n && n !== raiz) { p.unshift(Array.prototype.indexOf.call(n.parentNode.children, n)); n = n.parentNode; }
+    return p;
+  }
+  function resolverRuta(raiz, p) {
+    var n = raiz;
+    for (var i = 0; i < p.length && n; i++) n = n.children[p[i]];
+    return n;
   }
   function fact(icon, label, value) {
     return '<div class="lp-fact"><dt>' + icon + label + '</dt><dd>' + value + '</dd></div>';

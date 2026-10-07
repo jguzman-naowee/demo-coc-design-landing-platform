@@ -42,23 +42,22 @@
 
       /* top 5 + Colombia fijada */
       var colIx = rows.map(function (r) { return r.pais; }).indexOf('CO');
-      var visibles = ui.todo ? rows : rows.slice(0, 5);
-      var fijar = !ui.todo && colIx >= 5;
+      var visibles = rows; /* DC-068: siempre la tabla completa */
+      var fijar = false;
       var fila = function (r) {
         var co = r.pais === 'CO';
         return '<tr' + (co ? ' class="lp-mco"' : '') + '><td><span class="lp-pos lp-p' + (r.pos <= 3 ? r.pos : '') + '"><span class="lp-sr">Posición </span>' + r.pos + '</span></td>' +
-          '<td><span class="lp-mct">' + L.cc(r.pais, r.paisNombre) + '<b>' + esc(r.paisNombre) + '</b>' + (co ? '<span class="lp-mtg">Tu país</span>' : '') + '</span></td>' +
+          '<td><span class="lp-mct">' + L.cc(r.pais, r.paisNombre) + '<b>' + esc(r.paisNombre) + '</b>' + (co ? '<span class="lp-mtg">Nuestro país</span>' : '') + '</span></td>' +
           '<td class="lp-r">' + r.oro + '</td><td class="lp-r">' + r.plata + '</td><td class="lp-r">' + r.bronce + '</td><td class="lp-r lp-mt">' + r.total + '</td></tr>';
       };
       var dot = function (k, t) { return '<span class="lp-md"><span class="lp-tdot lp-tdot-' + k + '" aria-hidden="true"></span><span class="lp-md-t">' + t + '</span></span>'; };
-      h += '<div class="lp-mtw"><table class="lp-mt-tb"><caption class="lp-sr">' + esc(titulo) + (ui.todo ? ': todos' : ': top 5' + ' y Colombia') + '</caption><thead><tr><th scope="col" class="lp-w1">Pos.</th><th scope="col">País</th>' +
+      h += '<div class="lp-mtw"><table class="lp-tb lp-mt-tb"><caption class="lp-sr">' + esc(titulo) + ': todos' + '</caption><thead><tr><th scope="col" class="lp-w1">Pos.</th><th scope="col">País</th>' +
         '<th scope="col" class="lp-r lp-wm">' + dot('g', 'Oro') + '</th><th scope="col" class="lp-r lp-wm">' + dot('s', 'Plata') + '</th><th scope="col" class="lp-r lp-wm">' + dot('b', 'Bronce') + '</th><th scope="col" class="lp-r lp-wm">Total</th></tr></thead><tbody>' +
         visibles.map(fila).join('');
       if (fijar) h += '<tr class="lp-mgap"><td colspan="6"><span><i aria-hidden="true">···</i>Colombia · posición ' + rows[colIx].pos + ' de ' + rows.length + '</span></td></tr>' + fila(rows[colIx]);
       h += '</tbody></table></div>';
 
       h += '<div class="lp-mft"><span class="lp-cap">Ordenado por oros, luego platas y bronces' + (porDep ? ' · ' + tot.total + ' medallas en ' + esc(depNom) : '') + '</span>';
-      if (rows.length > 5) h += '<button type="button" class="lp-btn" data-todo aria-expanded="' + ui.todo + '">' + (ui.todo ? 'Ver solo el top 5' : 'Ver medallero completo (' + rows.length + ' países)') + (ui.todo ? '' : L.svg('right', 'lp-i-s')) + '</button>';
       el.innerHTML = h + '</div></div>';
       bind();
 
@@ -66,7 +65,6 @@
         var redraw = function (id) { window.Tabs['medalleria'].render(el, ctx); var f = id && el.querySelector('#' + id); if (f) f.focus(); };
         el.querySelectorAll('[data-modo]').forEach(function (b) { b.addEventListener('click', function () { ui.modo = b.getAttribute('data-modo'); ui.todo = false; redraw(); }); });
         var s = el.querySelector('#lp-med-dep'); if (s) s.addEventListener('change', function () { ui.dep = s.value; ui.todo = false; redraw('lp-med-dep'); });
-        var t = el.querySelector('[data-todo]'); if (t) t.addEventListener('click', function () { ui.todo = !ui.todo; redraw(); var n = el.querySelector('[data-todo]'); if (n) n.focus(); });
       }
     }
   };

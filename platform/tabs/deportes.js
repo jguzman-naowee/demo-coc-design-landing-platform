@@ -130,6 +130,7 @@
   var N = window.NWS, esc = N.esc;
   window.Tabs = window.Tabs || {};
   var ORD = { F: 0, M: 1, X: 2 };
+  var UMBRAL_BUSCADOR = 8; /* DC-027: el buscador de pruebas solo aplica con MÁS de 8 pruebas en el deporte */
   var ICO_CAL = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4m8-4v4"/></svg>';
 
   function inscritos(g) { return 6 + (N.hash(g.clave) % 43); }
@@ -156,6 +157,9 @@
     return { lista: lista, porDep: porDep, fases: fases };
   }
   function estadoG(g) { return g.vivo ? 'En vivo' : g.pend ? 'Programado' : 'Finalizado'; }
+  /* DC-046: programada = texto + ícono de calendario, como en Calendario */
+  var ICO_PROG = '<svg class="nwtab-st__ic" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false"><rect x="3" y="4.5" width="14" height="12.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 8.5h14M7 2.5v3.5M13 2.5v3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  function estBadge(g) { var e = estadoG(g); return e === 'Programado' ? '<span class="nwtab-st nwtab-st--prog">' + e + ICO_PROG + '</span>' : N.badge(e); }
   function celdaDia(g) {
     if (!g.pend) return '<span class="is-dim">Finalizó el ' + esc(N.corta(g.ult)) + '</span>';
     if (g.pend === OLC.HOY) return '<b class="nwtab-hoyt">Hoy</b>';
@@ -164,16 +168,30 @@
   function ordenar(a, b) { return a.nombre.localeCompare(b.nombre, 'es', { numeric: true }) || ORD[a.sexo] - ORD[b.sexo]; }
   function nPruebas(n) { return n + (n === 1 ? ' prueba' : ' pruebas'); }
   function nFases(n) { return n + (n === 1 ? ' fase' : ' fases'); }
+  /* Mismo corte que @container nws (max-width:720px): ancho útil de .nws-main, que cambia con el sidebar. */
+  function esCompacto(el) {
+    var m = el.closest('.nws-main') || el, cs = getComputedStyle(m), w = m.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    return w > 0 && w <= 720;
+  }
+  var ICO_X = '<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" focusable="false"><path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
   function render(el, ctx) {
     var data = ctx.data, pr = ctx.params, ui = ctx.ui.dp = ctx.ui.dp || { q: '', page: 1, size: 10, idx: {} };
     var ix = ui.idx[data.evento.code] || (ui.idx[data.evento.code] = indexar(data));
-    var q = (pr.q || '').trim(), bq = N.norm(ui.q.trim());
+    var bq = N.norm(ui.q.trim());
     var sexOk = function (g) { return N.sexOk(g, pr); };
     var lista = data.deportes.filter(function (d) { return !bq || N.norm(d.nombre).indexOf(bq) >= 0; });
     var sel = data.deportes.filter(function (d) { return d.codigo === pr.deporte; })[0] || data.deportes[0];
+    /* DC-059: en compacto la lista nunca marca deporte (sin aria-current); el modal lleva el contexto. */
+    /* Contenedor ≤720px: lista de deportes + modal con las pruebas; el estado vive en la URL (modal=1). */
+    var compact = esCompacto(el), abierto = compact && pr.modal === '1', fresh = ui.fresh; ui.fresh = false;
+    var anillo = lista.some(function (d) { return d.codigo === sel.codigo; }) ? lista : data.deportes;
+    var ai = anillo.map(function (d) { return d.codigo; }).indexOf(sel.codigo);
+    var vecino = function (k) { return anillo[(ai + k + anillo.length) % anillo.length]; };
 
     var propias = ix.porDep[sel.codigo] || [];
+    var conBuscador = propias.length > UMBRAL_BUSCADOR;
+    var q = conBuscador ? (pr.q || '').trim() : ''; /* sin buscador, un ?q= heredado no filtra */
     var universo = q ? ix.lista : propias;
     var nq = N.norm(q);
     var vis = universo.filter(function (g) { return sexOk(g) && (!q || N.norm(g.nombre + ' ' + g.deporteNombre).indexOf(nq) >= 0); }).sort(function (a, b) { return q ? a.deporteNombre.localeCompare(b.deporteNombre, 'es') || ordenar(a, b) : ordenar(a, b); });
@@ -183,39 +201,81 @@
     var rows = vis.slice((ui.page - 1) * ui.size, ui.page * ui.size);
     var conIns = vis.length > 0;
 
-    var h = '<section class="nwtab-tab nwtab-dps" aria-label="Deportes"><div class="nwtab-dp">';
+    var h = '<section class="nwtab-tab nwtab-dps" aria-label="Deportes"><div class="nwtab-dp' + (compact ? ' nwtab-dp--c' : '') + '">';
     h += '<aside class="nwtab-dp__l" aria-label="Lista de deportes"><label class="nwtab-search"><span class="nwtab-sr">Buscar deporte</span>' + N.ico('search') + '<input type="search" class="nwtab-in" data-k="q-dep" data-in="dep" placeholder="Buscar deporte" value="' + esc(ui.q) + '" autocomplete="off"></label><ul class="nwtab-dp__list">';
     if (!lista.length) h += '<li class="nwtab-dp__none">Ningún deporte coincide.</li>';
     lista.forEach(function (d) {
       var act = d.codigo === sel.codigo, patch = { tab: 'deportes', deporte: d.codigo };
       var n = (ix.porDep[d.codigo] || []).filter(sexOk).length;
+      if (compact) { h += '<li><button type="button" class="nwtab-dp__it nwtab-dp__card" data-dep="' + esc(d.codigo) + '" aria-haspopup="dialog"><span class="nwtab-dp__ic">' + N.depIco(d.codigo) + '</span><span class="nwtab-dp__ct"><span class="nwtab-dp__nm">' + esc(d.nombre) + '</span><span class="nwtab-dp__n">' + nPruebas(n) + '</span></span><span class="nwtab-dp__chev" aria-hidden="true">' + N.ico('right') + '</span></button></li>'; return; }
       h += '<li><a class="nwtab-dp__it" data-k="dp-' + d.codigo + '" href="' + esc(ctx.href(patch)) + '" data-patch=\'' + esc(JSON.stringify(patch)) + '\'' + (act ? ' aria-current="true"' : '') + '><span class="nwtab-dp__ic">' + N.depIco(d.codigo) + '</span><span class="nwtab-dp__nm">' + esc(d.nombre) + '</span><span class="nwtab-dp__n">' + n + '<span class="nwtab-sr"> pruebas</span></span></a></li>';
     });
     var fSel = ix.fases[sel.codigo] || 0;
-    h += '</ul></aside><div class="nwtab-dp__p"><header class="nwtab-dp__ph"><span class="nwtab-dp__ic nwtab-dp__ic--lg">' + N.depIco(sel.codigo) + '</span><div class="nwtab-dp__t"><h2 class="nwtab-h nwtab-h--lg">' + esc(sel.nombre) + '</h2><span class="nwtab-tag nwtab-tag--n">' + nPruebas(propias.length) + (fSel > propias.length ? ' · ' + nFases(fSel) : '') + '</span></div>' +
-      '<a class="nwtab-btn nwtab-btn--cal" data-k="lk-cal" aria-label="Ver en Calendario y resultados" title="Ver en Calendario y resultados" href="' + esc(ctx.href({ tab: 'calendario-resultados', deporte: sel.codigo, sexo: pr.sexo || '' })) + '" data-patch=\'' + esc(JSON.stringify({ tab: 'calendario-resultados', deporte: sel.codigo, sexo: pr.sexo || '' })) + '\'><span>Calendario y resultados</span>' + ICO_CAL + '</a></header>';
+    h += '</ul></aside>';
+    var hp = '<div class="nwtab-dp__p"><header class="nwtab-dp__ph"><span class="nwtab-dp__ic nwtab-dp__ic--lg">' + N.depIco(sel.codigo) + '</span><div class="nwtab-dp__t"><h2 class="nwtab-h nwtab-h--lg" id="nwtab-dpm-h">' + esc(sel.nombre) + '</h2><span class="nwtab-tag nwtab-tag--n">' + nPruebas(propias.length) + (fSel > propias.length ? ' · ' + nFases(fSel) : '') + '</span></div>' +
+      '<a class="nwtab-btn nwtab-btn--cal" data-k="lk-cal" aria-label="Ver en Calendario y resultados" title="Ver en Calendario y resultados" href="' + esc(ctx.href({ tab: 'calendario-resultados', deporte: sel.codigo, sexo: pr.sexo || '', modal: '' })) + '" data-patch=\'' + esc(JSON.stringify({ tab: 'calendario-resultados', deporte: sel.codigo, sexo: pr.sexo || '', modal: '' })) + '\'><span>Calendario y resultados</span>' + ICO_CAL + '</a>' + (abierto ? '<button type="button" class="nwtab-dpm__x" data-mclose data-k="dpm-x" autofocus aria-label="Cerrar">' + ICO_X + '</button>' : '') + '</header>' + (abierto ? '<div class="nwtab-dpm__body">' : '');
     /* DC-095: la palabra del filtro es «Género». */
-    h += '<div class="nwtab-dp__sb"><label class="nwtab-search nwtab-search--w"><span class="nwtab-sr">Buscar prueba</span>' + N.ico('search') + '<input type="search" class="nwtab-in" data-k="q-pru" data-in="pru" placeholder="Buscar prueba" value="' + esc(q) + '" autocomplete="off"></label>' + N.sexBar(pr) + '</div>';
+    hp += '<div class="nwtab-dp__sb">' + (conBuscador ? '<label class="nwtab-search nwtab-search--w"><span class="nwtab-sr">Buscar prueba</span>' + N.ico('search') + '<input type="search" class="nwtab-in" data-k="q-pru" data-in="pru" placeholder="Buscar prueba" value="' + esc(q) + '" autocomplete="off"></label>' : '') + N.sexBar(pr) + '</div>';
     if (!vis.length) {
-      h += '<div class="nwtab-emptyb">' + (q ? '<b>Ninguna prueba coincide con «' + esc(q) + '».</b><button type="button" class="nwtab-btn" data-k="clr" data-clr="1">Limpiar búsqueda</button>' : '<b>Ninguna prueba con este filtro.</b><span>Pruebe con otro género.</span>') + '</div>';
+      hp += '<div class="nwtab-emptyb">' + (q ? '<b>Ninguna prueba coincide con «' + esc(q) + '».</b><button type="button" class="nwtab-btn" data-k="clr" data-clr="1">Limpiar búsqueda</button>' : '<b>Ninguna prueba con este filtro.</b><span>Pruebe con otro género.</span>') + '</div>';
     } else {
-      h += '<table class="nwtab-pt"><thead><tr><th scope="col">Prueba</th><th scope="col">Fases</th><th scope="col">Próxima competencia</th><th scope="col">Estado</th>' + (conIns ? '<th scope="col" class="nwtab-r">Inscritos</th>' : '') + '</tr></thead><tbody>';
+      hp += '<table class="nwtab-pt"><thead><tr><th scope="col">Prueba</th><th scope="col">Próxima competencia</th><th scope="col">Estado</th>' + (conIns ? '<th scope="col" class="nwtab-r">Inscritos</th>' : '') + '</tr></thead><tbody>';
       rows.forEach(function (g, z) {
-        h += '<tr' + (z % 2 ? ' class="is-z"' : '') + '><td class="nwtab-c-pr"><span class="nwtab-pn"><b>' + resaltar(g.nombre, q) + '</b>' + N.sexTag(g.sexo) + (q ? '<span class="nwtab-chip">' + resaltar(g.deporteNombre, q) + '</span>' : '') + '</span></td><td class="nwtab-c-fs">' + nFases(g.fases) + '</td><td class="nwtab-c-dia">' + celdaDia(g) + '</td><td class="nwtab-c-st">' + N.badge(estadoG(g)) + '</td>' + (conIns ? '<td class="nwtab-c-ins nwtab-r">' + inscritos(g) + '</td>' : '') + '</tr>';
+        var sec = (q ? g.deporteNombre + ' · ' : '') + nFases(g.fases);
+        hp += '<tr><td class="nwtab-c-pr"><div class="nwtab-pi"><b class="nwtab-pi__n">' + resaltar(g.nombre, q) + '</b><span class="nwtab-pi__m">' + N.sexTag(g.sexo) + '<span class="nwtab-pi__s" title="' + esc(sec) + '">' + (q ? resaltar(g.deporteNombre, q) + ' · ' : '') + nFases(g.fases) + '</span></span></div></td><td class="nwtab-c-dia">' + celdaDia(g) + '</td><td class="nwtab-c-st">' + estBadge(g) + '</td>' + (conIns ? '<td class="nwtab-c-ins nwtab-r">' + inscritos(g) + '</td>' : '') + '</tr>';
       });
-      h += '</tbody></table>';
-      if (pages > 1) h += '<nav class="nwtab-pg" aria-label="Paginación">' + /* DC-141/142: tamaño fijo 10, sin paginar si cabe en una página */
+      hp += '</tbody></table>';
+      if (pages > 1) hp += '<nav class="nwtab-pg" aria-label="Paginación">' + /* DC-141/142: tamaño fijo 10, sin paginar si cabe en una página */
         '<div class="nwtab-pg__b"><button type="button" class="nwtab-btn nwtab-btn--i" data-k="pg-prev" data-pg="' + (ui.page - 1) + '" aria-label="Página anterior"' + (ui.page <= 1 ? ' disabled' : '') + '>' + N.ico('left') + '</button><span class="nwtab-pg__n">Página <b>' + ui.page + '</b> de ' + pages + '</span><button type="button" class="nwtab-btn nwtab-btn--i" data-k="pg-next" data-pg="' + (ui.page + 1) + '" aria-label="Página siguiente"' + (ui.page >= pages ? ' disabled' : '') + '>' + N.ico('right') + '</button></div></nav>';
     }
-    h += '</div></div></section>';
+    /* Pie fijo con los deportes vecinos, cíclicos (el anillo respeta el buscador de deportes). */
+    if (!abierto) hp += '</div>';
+    else {
+      var vp = vecino(-1), vn = vecino(1);
+      hp += '</div>' + (anillo.length > 1 ? '<nav class="nwtab-dpm__mn" aria-label="Cambiar de deporte"><button type="button" class="nwtab-dpm__mb" data-vec="' + esc(vp.codigo) + '" data-k="dpm-p" aria-label="Deporte anterior: ' + esc(vp.nombre) + '">' + N.ico('left') + '<span><small>Anterior</small><b>' + esc(vp.nombre) + '</b></span></button><button type="button" class="nwtab-dpm__mb" data-vec="' + esc(vn.codigo) + '" data-k="dpm-n" aria-label="Deporte siguiente: ' + esc(vn.nombre) + '"><span><small>Siguiente</small><b>' + esc(vn.nombre) + '</b></span>' + N.ico('right') + '</button></nav>' : '') + '</div>';
+    }
+    h += abierto ? '<dialog class="nwtab-dpm' + (fresh ? ' nwtab-dpm--in' : '') + '" aria-modal="true" aria-labelledby="nwtab-dpm-h">' + hp + '</dialog>' : compact ? '' : hp;
+    h += '</div></section>';
     el.innerHTML = h;
     N.bindBar(el, ctx); N.bindLinks(el, ctx);
 
     var inD = el.querySelector('[data-in="dep"]'), inP = el.querySelector('[data-in="pru"]');
     inD.addEventListener('input', function () { var c = inD.selectionStart; ui.q = inD.value; render(el, ctx); N.refocus('q-dep', c); });
-    inP.addEventListener('input', function () { var c = inP.selectionStart; ctx.go({ q: inP.value }); N.refocus('q-pru', c); });
+    if (inP) inP.addEventListener('input', function () { var c = inP.selectionStart; ctx.go({ q: inP.value }); N.refocus('q-pru', c); });
     var clr = el.querySelector('[data-clr]'); if (clr) clr.addEventListener('click', function () { N.go(ctx, { q: '' }, 'q-pru'); });
     el.querySelectorAll('[data-pg]').forEach(function (b) { b.addEventListener('click', function () { ui.page = +b.getAttribute('data-pg'); render(el, ctx); N.refocus(b.getAttribute('data-k')); }); });
+
+    /* Modal de pruebas: abrir/cambiar/cerrar viven en la URL; el foco vuelve a la tarjeta que lo abrió. */
+    var cambiar = function (patch) { history.replaceState(null, '', ctx.href(patch)); ctx.go({}); };
+    el.querySelectorAll('[data-dep]').forEach(function (b) { b.addEventListener('click', function () { ui.fresh = true; ctx.go({ tab: 'deportes', deporte: b.getAttribute('data-dep'), modal: '1' }); }); });
+    el.querySelectorAll('[data-vec]').forEach(function (b) { b.addEventListener('click', function () { ui.foc = '[data-k="' + b.getAttribute('data-k') + '"]'; cambiar({ deporte: b.getAttribute('data-vec'), modal: '1' }); }); });
+    var dlg = el.querySelector('dialog.nwtab-dpm');
+    if (dlg) {
+      if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+      dlg.addEventListener('close', function () { ui.foc = '[data-dep="' + sel.codigo + '"]'; cambiar({ modal: '' }); });
+      dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+      dlg.addEventListener('keydown', function (e) {
+        if (e.key !== 'Tab') return;
+        var f = [].filter.call(dlg.querySelectorAll('a[href],button:not(:disabled),input'), function (x) { return x.offsetParent !== null; });
+        if (!f.length) return;
+        var a = f[0], z = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+      });
+      dlg.querySelector('[data-mclose]').addEventListener('click', function () { dlg.close(); });
+    }
+    if (ui.foc) { var fo = el.querySelector(ui.foc); ui.foc = ''; if (fo) fo.focus({ preventScroll: true }); }
+    el.__dpCtx = ctx; el.__dpC = compact;
+    var main = el.closest('.nws-main') || el;
+    if (window.ResizeObserver && !el.__dpRO) {
+      el.__dpRO = new ResizeObserver(function () {
+        var c = el.__dpCtx;
+        if (!el.isConnected || !el.querySelector('.nwtab-dps')) { el.__dpRO.disconnect(); el.__dpRO = null; return; }
+        var ahora = esCompacto(el);
+        if (ahora === el.__dpC) return;
+        if (!ahora && c.params.modal === '1') { history.replaceState(null, '', c.href({ modal: '' })); c.go({}); } else render(el, c);
+      });
+      el.__dpRO.observe(main);
+    }
   }
 
   window.Tabs['deportes'] = { render: render };

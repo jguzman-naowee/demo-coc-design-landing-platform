@@ -6,22 +6,18 @@
   var $top = document.getElementById('nws-topbar');
 
   var TABS = [
-    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'informacion', label: 'Información' },
     { id: 'deportes', label: 'Deportes' },
+    { id: 'inscripciones', label: 'Inscripciones' },
     { id: 'calendario-resultados', label: 'Calendario y resultados' },
-    { id: 'medalleria', label: 'Medallería' },
-    { id: 'deportistas', label: 'Deportistas' }
+    { id: 'medalleria', label: 'Medallería' }
   ];
-  var DEFAULT_TAB = 'calendario-resultados';
-  var PARAMS = ['sexo', 'colombia', 'dia', 'deporte', 'q', 'tab', 'prueba'];
+  var PARAMS = ['sexo', 'colombia', 'dia', 'deporte', 'q', 'tab', 'prueba', 'modal'];
   /* Menú del MF real (src/config/menu.ts); las rutas son hash del prototipo. */
   var MENU = [
     { id: 'olympic-cycle-dashboard', label: 'Dashboard Ciclo Olímpico', route: '#/dashboards', icon: 'view-columns', section: 'ANALÍTICA' },
-    { id: 'data-dashboards', label: 'Dashboards', route: '#/analytics/dashboards', icon: 'view-columns' },
-    { id: 'data-reports', label: 'Reportes', route: '#/analytics/reports', icon: 'file' },
-    { id: 'events', label: 'Eventos', route: '#/eventos', icon: 'categories', section: 'EVENTOS' },
-    { id: 'management', label: 'Gestión deportiva', route: '#/management', icon: 'avatar', section: 'DIRECTORIO' },
-    { id: 'users', label: 'Gestión de usuarios', route: '#/users', icon: 'user' }
+    // Sin enlaces vacíos: solo se listan secciones con contenido (DC-151)
+    { id: 'events', label: 'Eventos', route: '#/eventos', icon: 'categories', section: 'EVENTOS' }
   ];
   var EMPTY = { '/analytics/dashboards': 'Dashboards', '/analytics/reports': 'Reportes', '/management': 'Gestión deportiva', '/users': 'Gestión de usuarios' };
   var YO = 'Laura Marcela Ortiz'; // usuario de la demo: «Mis eventos» = eventos que gestiona
@@ -47,16 +43,17 @@
   function badgeCiclo() {
     return '<span class="nwt-badge nws-badge nws-badge--ciclo" nwt-variant="quiet" nwt-theme="secondary"><span class="nwt-badge__content"><span class="nwt-badge__label">Ciclo Olímpico</span></span></span>';
   }
-  /* DC-133: estado, ciclo y alcance como iconos con title y texto accesible */
-  var ST_CLS = { 'En curso': 'on', 'Próximo': 'next', 'Finalizado': 'end' };
-  function dotEstado(est) {
-    return '<span class="nws-ico nws-st nws-st--' + ST_CLS[est] + '" role="img" tabindex="0" aria-label="Estado: ' + est + '" title="' + est + '"></span>';
+  /* DC-102/103: estado, alcance y ciclo como badges con texto (mismo badge que el detalle) */
+  function chip(svg, txt, cls) {
+    return '<span class="nwt-badge nws-badge nws-badge--chip ' + cls + '" nwt-variant="quiet" nwt-theme="neutral"><span class="nwt-badge__content">' + svg +
+      '<span class="nwt-badge__label">' + esc(txt) + '</span></span></span>';
   }
+  function dotEstado(est) { return badgeEstado(est, true).replace('nws-badge ', 'nws-badge nws-st '); }
   function icoCiclo() {
-    return '<span class="nws-ico nws-ico--ciclo" role="img" tabindex="0" aria-label="Ciclo Olímpico" title="Ciclo Olímpico"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="6.5" cy="9" r="4"/><circle cx="12" cy="9" r="4"/><circle cx="17.5" cy="9" r="4"/><circle cx="9.25" cy="15" r="4"/><circle cx="14.75" cy="15" r="4"/></svg></span>';
+    return chip('<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="6.5" cy="9" r="4"/><circle cx="12" cy="9" r="4"/><circle cx="17.5" cy="9" r="4"/><circle cx="9.25" cy="15" r="4"/><circle cx="14.75" cy="15" r="4"/></svg>', 'Ciclo Olímpico', 'nws-chip--ciclo');
   }
   function icoAlcance(e) {
-    return '<span class="nws-ico nws-ico--alc" role="img" tabindex="0" aria-label="' + alcanceTxt(e) + '" title="' + alcanceTxt(e) + '"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></span>';
+    return chip('<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>', 'Internacional', 'nws-chip--alc');
   }
   /* Tiempo del evento, siempre derivado de las fechas contra OLC.HOY. */
   function dif(a, b) { return Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000); }
@@ -129,9 +126,9 @@
   var PAGE_SIZE = 12; // cabe todo el catálogo (11): «Todos» no esconde en pág. 2 los de «Mis eventos»
 
   function setTop(partes) {
-    var h = '<div class="nws-topbar__in"><span class="nws-topbar__brand">Naowee Suite</span>';
-    partes.forEach(function (p) {
-      h += '<span class="nws-topbar__sep" aria-hidden="true">/</span>';
+    var h = '<div class="nws-topbar__in">';
+    partes.forEach(function (p, i) {
+      if (i) h += '<span class="nws-topbar__sep" aria-hidden="true">/</span>';
       h += p.href ? '<a href="' + p.href + '">' + esc(p.t) + '</a>' : '<span aria-current="page">' + esc(p.t) + '</span>';
     });
     $top.innerHTML = '<nav aria-label="Miga de pan">' + h + '</div></nav>';
@@ -142,7 +139,7 @@
   var $menuBtn = document.getElementById('nws-menubtn');
   var viaMenu = false; // el drawer se cerró por navegar: el foco va al contenido, no al botón
   function menuActivo(route) {
-    return route.view === 'dashboard' ? 'olympic-cycle-dashboard' : route.view === 'vacia' ? MENU.filter(function (m) { return m.route === '#' + route.code; })[0].id : 'events';
+    return route.view === 'dashboard' ? 'olympic-cycle-dashboard' : route.view === 'vacia' ? (MENU.filter(function (m) { return m.route === '#' + route.code; })[0] || {}).id : 'events';
   }
   function syncMenu(route) {
     var act = menuActivo(route);
@@ -162,6 +159,8 @@
     var r = e.detail && e.detail.route;
     if (!r) return;
     viaMenu = true;
+    // Entrar por el menú siempre lleva a la primera página: vista nueva, scroll arriba y paginación en 1 (DC-147)
+    state.view = null; state.code = null; listUi.page = 1;
     if (r === location.hash) render(); else location.hash = r;
     if ($side.closeDrawer) $side.closeDrawer();
   });
@@ -194,6 +193,13 @@
     var vacia = route.view === 'vacia';
     var titulo = vacia ? EMPTY[route.code] : 'Dashboard Ciclo Olímpico';
     setTop([{ t: titulo }]);
+    if (!vacia) {
+      /* Mockup del dashboard general (platform/dashboards/dashboard-general.html), incrustado sin su propio sidebar. */
+      $main.innerHTML = '<h1 id="nws-h1" class="nws-sr" tabindex="-1">' + esc(titulo) + '</h1>' +
+        '<iframe class="nws-dashframe" src="dashboards/dashboard-general.html?embed=1" title="Dashboard general del Ciclo Olímpico (mockup)"></iframe>';
+      document.title = titulo + ' · Naowee Suite';
+      return;
+    }
     $main.innerHTML = '<div class="nws-page"><h1 id="nws-h1" class="nwt-h5-font-bold" tabindex="-1">' + esc(titulo) + '</h1>' +
       (vacia ? '<div class="nws-empty nws-empty--page"><b>' + esc(titulo) + '</b><span class="nws-muted">No incluido en este prototipo</span></div>'
         : '<div class="nws-reserved" role="img" aria-label="Espacio reservado para el Dashboard Ciclo Olímpico"><b>Dashboard Ciclo Olímpico</b><span>Se redefine en otro frente</span></div>') + '</div>';
@@ -256,7 +262,7 @@
       '<span class="nws-row__ciclo">' + (e.ciclo ? icoCiclo() : '') + '</span>' +
       '<span class="nws-row__fechas nwt-caption-font-regular">' + icon('calendar') + '<span><strong>' + OLC.fechaCorta(e.inicio) + '</strong> – ' + OLC.fechaCorta(e.fin) + '</span></span>' +
       '<span class="nws-row__lugar nwt-caption-font-regular">' + icon('gps-pin') + '<span>' + esc(ciudad(e.lugar)) + '</span></span>' +
-      '<span class="nws-row__alc nwt-caption-font-regular">' + icoAlcance(e) + '<span>' + esc(alcanceTxt(e)) + '</span></span>' +
+      '<span class="nws-row__alc">' + icoAlcance(e) + '</span>' +
       '<a class="ec-link nws-row__ver" href="' + href + '" aria-label="Ver detalle de ' + esc(e.nombre) + '">Ver detalle ' + icon('arrow-right') + '</a></li>';
   }
   function itemsHtml(arr) {
@@ -353,7 +359,7 @@
     } else h = itemsHtml(slice);
     h += '<div class="nws-bar">';
     if (pages > 1) {
-      h += '<nav class="nws-pager" aria-label="Paginación"><button type="button" data-pg="' + (listUi.page - 1) + '" aria-label="Página anterior"' + (listUi.page === 1 ? ' disabled' : '') + '>' + icon('chevron-left') + '</button>';
+      h += '<nav class="nw-pager nw-pager--nums" aria-label="Paginación"><button type="button" data-pg="' + (listUi.page - 1) + '" aria-label="Página anterior"' + (listUi.page === 1 ? ' disabled' : '') + '>' + icon('chevron-left') + '</button>';
       for (var i = 1; i <= pages; i++) h += '<button type="button" data-pg="' + i + '"' + (i === listUi.page ? ' aria-current="page"' : '') + '>' + i + '</button>';
       h += '<button type="button" data-pg="' + (listUi.page + 1) + '" aria-label="Página siguiente"' + (listUi.page === pages ? ' disabled' : '') + '>' + icon('chevron-right') + '</button></nav>';
     }
@@ -417,9 +423,10 @@
   }
 
   /* ---------- detalle ---------- */
-  function stripCol(ic, lbl, val, extra) {
-    return '<div class="nws-event-detail__column"><span class="nws-event-detail__label">' + icon(ic) + lbl + '</span>' +
-      (extra ? '<span class="nws-event-detail__valrow"><span class="nwt-smalltext-font-bold">' + esc(val) + '</span>' + extra + '</span>' : '<span class="nwt-smalltext-font-bold">' + esc(val) + '</span>') + '</div>';
+  // DC-112: fila etiqueta | valor de la lista de datos (dt/dd); `extra` es el badge junto al valor.
+  function dataRow(ic, lbl, val, extra) {
+    return '<div class="nws-event-detail__row"><dt class="nws-event-detail__label">' + icon(ic) + lbl + '</dt>' +
+      '<dd class="nws-event-detail__value"><span class="nwt-smalltext-font-bold">' + esc(val) + '</span>' + (extra || '') + '</dd></div>';
   }
 
   function varianteFoto(code) {
@@ -429,26 +436,42 @@
 
   /* La descripción del fixture trae una nota técnica entre paréntesis: no es texto de usuario. */
   function limpiarDesc(t) { return String(t || '').replace(/\s*\(descripción derivada[^)]*\)/i, ''); }
-  function cabeceraHtml(data) {
+  // DC-035: "Volver" va fuera de la card, en su propia fila sobre el fondo de la página.
+  function volverHtml() {
+    return '<a class="nws-iconbtn nws-iconbtn--lg nws-event-detail__back" href="#/eventos" aria-label="Volver a eventos">' + icon('arrow-left') + '<span class="nws-event-detail__back-label">Volver</span></a>';
+  }
+  /* DC-114: mismo contador del landing (texto + chip con la cifra); el aria-label lleva la frase completa. */
+  function contadorHtml(e, est) {
+    var w, c, l;
+    if (est === 'Próximo') { var d = dif(OLC.HOY, e.inicio); w = d === 1 ? 'Día que falta' : 'Días que faltan'; c = d; l = d === 1 ? '1 día que falta' : d + ' días que faltan'; }
+    else if (est === 'En curso') { var a = dif(e.inicio, OLC.HOY) + 1, t = dif(e.inicio, e.fin) + 1; w = 'Día'; c = a + '/' + t; l = 'Día ' + a + ' de ' + t; }
+    else return '';
+    return '<span class="nws-event-detail__ctd" role="group" aria-label="' + l + '"><span class="nws-event-detail__ctd-w" aria-hidden="true">' + w + '</span><span class="nws-event-detail__ctd-n" aria-hidden="true">' + c + '</span></span>';
+  }
+  /* DC-107: el hero va entre el Volver y la barra de pestañas, una sola vez para todas las pestañas. */
+  function heroHtml(data) {
     var e = data.evento, est = data.estado;
-    var h = '<header class="nws-event-detail__head nws-ph' + varianteFoto(e.code || data.code || e.nombre) + '" aria-label="Encabezado del evento"><span class="nws-ph__tag">Foto del evento</span><div class="nws-event-detail__veil"></div>' +
-      '<div class="nws-event-detail__hero-in"><a class="nws-iconbtn nws-iconbtn--lg nws-event-detail__back" href="#/eventos" aria-label="Volver a eventos">' + icon('arrow-left') + '</a>' +
+    return '<header class="nws-event-detail__head nws-ph' + varianteFoto(e.code || data.code || e.nombre) + '" aria-label="Encabezado del evento"><span class="nws-ph__tag">Foto del evento</span><div class="nws-event-detail__veil"></div>' +
+      '<div class="nws-event-detail__hero-in">' +
       '<div class="nws-event-detail__titlebox"><div class="nws-event-detail__badges">' + (e.ciclo ? '<span class="nws-event-detail__cycle">Ciclo Olímpico</span>' : '') +
-      (est === 'Finalizado' ? '' : '<span class="nws-event-detail__when">' + esc(tiempoEvento(data.evento)) + '</span>') +
       '</div>' +
-      '<h1 class="nws-event-detail__name" id="nws-h1" tabindex="-1">' + esc(e.nombre) + '</h1>' +
-      (e.descripcion ? '<p class="nws-event-detail__lead">' + esc(limpiarDesc(e.descripcion)) + '</p>' : '') + '</div></div></header>';
-    h += '<div class="nws-event-detail__card"><div class="nws-event-detail__strip">' +
-      stripCol('calendar', 'Fecha de inicio', OLC.fechaCorta(e.inicio)) + stripCol('calendar', 'Fecha final', OLC.fechaCorta(e.fin), badgeEstado(est, true)) +
-      stripCol('gps-pin', 'Lugar', e.lugar) + stripCol('real-estate', 'Organismo', e.organismo) + stripCol('home', 'Alcance', alcanceTxt(e)) + '</div>';
+      '<h2 class="nws-event-detail__name">' + esc(e.nombre) + '</h2>' +
+      (e.descripcion ? '<p class="nws-event-detail__lead">' + esc(limpiarDesc(e.descripcion)) + '</p>' : '') + '<div class="nws-event-detail__badges">' + contadorHtml(e, est) + '</div></div></div></header>';
+  }
+  /* Primera pestaña de todo evento: datos clave, sedes y gestor. */
+  function informacionHtml(data) {
+    var e = data.evento, est = data.estado;
+    var h = '<div class="nws-event-detail__card"><dl class="nws-event-detail__list">' +
+      dataRow('real-estate', 'Organismo', e.organismo) + dataRow('home', 'Alcance', alcanceTxt(e)) +
+      dataRow('calendar', 'Fecha de inicio', OLC.fechaCorta(e.inicio)) + dataRow('calendar', 'Fecha final', OLC.fechaCorta(e.fin), badgeEstado(est, true)) +
+      dataRow('gps-pin', 'Lugar', e.lugar);
     if (e.sedes && e.sedes.length) {
-      h += '<div class="nws-event-detail__venues"><span class="nws-event-detail__label">' + icon('gps-pin-filled') + 'Sedes<span class="nws-event-detail__venues-count">' + e.sedes.length + '</span></span>' +
-        '<ul class="nws-event-detail__venues-list" aria-label="Sedes del evento">' + e.sedes.map(function (s) { return '<li class="nws-event-detail__venue nwt-smalltext-font-regular">' + esc(s) + '</li>'; }).join('') + '</ul></div>';
+      h += '<div class="nws-event-detail__row nws-event-detail__row--full"><dt class="nws-event-detail__label">' + icon('gps-pin-filled') + 'Sedes<span class="nws-event-detail__venues-count">' + e.sedes.length + '</span></dt>' +
+        '<dd class="nws-event-detail__value"><ul class="nws-event-detail__venues-list" aria-label="Sedes del evento">' + e.sedes.map(function (s) { return '<li class="nws-event-detail__venue nwt-smalltext-font-regular">' + esc(s) + '</li>'; }).join('') + '</ul></dd></div>';
     }
-    h += '</div>';
-    h += '<div class="nws-event-detail__card"><div class="nws-event-detail__strip nws-event-detail__strip--foot">' +
-      '<div class="nws-event-detail__column" role="group" aria-label="Gestor asignado"><div class="nws-event-detail__manager">' +
-      '<span class="nws-avatar" aria-hidden="true">' + esc(iniciales(e.gestor.nombre)) + '</span><div class="nws-event-detail__manager-meta"><span class="nwt-smalltext-font-bold">' + esc(e.gestor.nombre) + '</span><small class="nwt-caption-font-regular">' + esc(e.gestor.rol) + '</small></div></div></div>'  + '</div></div>';
+    h += '<div class="nws-event-detail__row nws-event-detail__row--full"><dt class="nws-event-detail__label">' + icon('user') + 'Gestor asignado</dt>' +
+      '<dd class="nws-event-detail__value"><div class="nws-event-detail__manager"><span class="nws-avatar" aria-hidden="true">' + esc(iniciales(e.gestor.nombre)) + '</span>' +
+      '<div class="nws-event-detail__manager-meta"><span class="nwt-smalltext-font-bold">' + esc(e.gestor.nombre) + '</span><small class="nwt-caption-font-regular">' + esc(e.gestor.rol) + '</small></div></div></dd></div></dl></div>';
     return h;
   }
 
@@ -462,8 +485,11 @@
       return;
     }
     setTop([{ t: 'Eventos', href: '#/eventos' }, { t: data.evento.nombre }]);
-    $main.innerHTML = '<div class="nws-page nws-event-detail">' + cabeceraHtml(data) +
-      '<div class="nws-event-detail-tabs"><div class="nws-event-detail-tabs__strip" id="nws-tabstrip"></div>' +
+    $main.innerHTML = '<div class="nws-page nws-event-detail">' + volverHtml() +
+      '<h1 class="nws-sr" id="nws-h1" tabindex="-1">' + esc(data.evento.nombre) + '</h1>' + heroHtml(data) +
+      '<div class="nws-event-detail-tabs"><div class="nws-tabnav__sent" aria-hidden="true"></div>' +
+      '<nav class="nws-tabnav" aria-label="Secciones del evento"><div class="nws-tabnav__row">' +
+      '<div class="nws-event-detail-tabs__strip" id="nws-tabstrip"></div></div></nav>' +
       '<div class="nws-event-detail-tabs__panel" id="nws-panel" role="tabpanel" aria-label="Contenido de la sección"></div></div></div>';
     state.data = data;
     var strip = document.getElementById('nws-tabstrip');
@@ -474,27 +500,69 @@
       state.tabsEl.value = currentTab(route);
       state.tabsEl.addEventListener('nwtChange', function (e) {
         var r = parseHash();
-        if (e.detail !== currentTab(r)) location.hash = buildHash(r.code, merge(r.params, { tab: e.detail }));
+        if (e.detail !== currentTab(r)) location.hash = buildHash(r.code, merge(r.params, { tab: e.detail, modal: '' }));
       });
     });
     state.data = data;
     renderPanel(route);
+    wireTabnav();
   }
 
-  /* Pestañas visibles: Medallería solo con medallas; Deportistas solo si hay pruebas con inscritos
-     (los inscritos existen desde antes de competir, así que en eventos Próximos se mantiene). */
-  function visibleTabs(data) {
-    return TABS.filter(function (t) {
-      if (!data) return true;
-      if (t.id === 'medalleria') return data.medallero().length > 0;
-      if (t.id === 'deportistas') return data.pruebas.length > 0;
-      return true;
-    });
+
+  /* Barra de pestañas pegada: el centinela avisa cuándo el head la alcanza y entonces se marca is-stuck (sombra). */
+  var tabnavIO = null, headRO = null, tabnavSync = null;
+  function wireTabnav() {
+    if (tabnavIO) { tabnavIO.disconnect(); tabnavIO = null; }
+    var nav = document.querySelector('.nws-tabnav'), sent = document.querySelector('.nws-tabnav__sent'), hd = document.querySelector('.nws-head');
+    if (!nav || !sent || !hd || !window.IntersectionObserver) return;
+    var h = hd.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--nws-hh', h + 'px');
+    tabnavIO = new IntersectionObserver(function (en) {
+      var e = en[en.length - 1];
+      nav.classList.toggle('is-stuck', !e.isIntersecting && e.boundingClientRect.top < (e.rootBounds ? e.rootBounds.top : h));
+    }, { rootMargin: '-' + Math.ceil(h) + 'px 0px 0px 0px', threshold: [0, 1] });
+    tabnavIO.observe(sent);
+    if (!tabnavSync) {
+      /* Un salto de scroll que pasa de largo el centinela no dispara el observer: este listener lo cubre. */
+      tabnavSync = function () {
+        var n = document.querySelector('.nws-tabnav'), s = document.querySelector('.nws-tabnav__sent'), d = document.querySelector('.nws-head');
+        if (n && s && d) n.classList.toggle('is-stuck', s.getBoundingClientRect().top < d.getBoundingClientRect().height);
+      };
+      window.addEventListener('scroll', tabnavSync, { passive: true });
+    }
+    if (!headRO && window.ResizeObserver) {
+      headRO = new ResizeObserver(function () { if (document.querySelector('.nws-tabnav')) wireTabnav(); });
+      headRO.observe(hd);
+    }
   }
+
+  /* Pestañas visibles: Medallería solo si el evento ya empezó (Deportistas se quitó de la barra). */
+  function visibleTabs(data) {
+    var ev = data && data.evento, est = ev ? OLC.estado(ev) : null, clave = ev ? pestanaClave(ev) : null;
+    var vis = TABS.filter(function (t) {
+      if (!data) return true;
+      if (t.id === 'medalleria') return est !== 'Próximo';
+      return true;
+    }).map(function (t) {
+      return t.id === 'calendario-resultados' ? { id: t.id, label: etiquetaCalendario(ev) } : t;
+    });
+    /* El orden es fijo (Información, Deportes, Inscripciones, Calendario, Medallería): Información va primero y abre por defecto; la clave solo se marca. */
+    return vis.map(function (t) { return t.id === clave ? Object.assign({}, t, { clave: true }) : t; });
+  }
+  /* Qué sección importa según el momento del evento: pasó, está pasando o viene. */
+  function pestanaClave(ev) {
+    var est = OLC.estado(ev);
+    return est === 'Finalizado' ? 'medalleria' : est === 'En curso' ? 'calendario-resultados' : 'inscripciones';
+  }
+  /* DC-043: un evento Próximo aún no tiene resultados, así que la pestaña solo dice «Calendario». */
+  function etiquetaCalendario(ev) {
+    return ev && OLC.estado(ev) === 'Próximo' ? 'Calendario' : 'Calendario y resultados';
+  }
+  /* El tab= explícito manda; si no existe o está oculto (medallería en Próximo) abre Información. */
   function currentTab(route) {
     var vis = visibleTabs(state.data), t = route.params.tab;
     if (vis.some(function (x) { return x.id === t; })) return t;
-    return vis.some(function (x) { return x.id === DEFAULT_TAB; }) ? DEFAULT_TAB : vis[0].id;
+    return vis[0].id;
   }
 
   function renderPanel(route) {
@@ -515,15 +583,17 @@
       },
       href: function (patch) { var r = parseHash(); return buildHash(r.code, merge(r.params, patch)); }
     };
-    panel.setAttribute('aria-label', (TABS.filter(function (t) { return t.id === tab; })[0] || {}).label);
-    if (tab === 'dashboard') {
-      panel.innerHTML = '<div class="nws-reserved" role="img" aria-label="Espacio reservado para el dashboard del evento"><b>Dashboard del evento</b>' +
-        '<span>Dashboard del evento — se redefine en otro frente. Este espacio queda reservado, sin cambios.</span></div>';
+    panel.classList.toggle('is-info', tab === 'informacion');
+    panel.setAttribute('aria-label', (visibleTabs(data).filter(function (t) { return t.id === tab; })[0] || {}).label);
+    if (tab === 'informacion') {
+      panel.innerHTML = informacionHtml(data);
     } else if (window.Tabs && window.Tabs[tab] && typeof window.Tabs[tab].render === 'function') {
       try { window.Tabs[tab].render(panel, ctx); } catch (err) {
         console.error('Tab «' + tab + '»', err);
         panel.innerHTML = '<div class="nws-reserved"><b>No se pudo mostrar esta sección</b><span>Intenta recargar la página.</span></div>';
       }
+    } else if (tab === 'inscripciones') {
+      panel.innerHTML = '<div class="nws-reserved"><b>Inscripciones</b></div>';
     } else {
       panel.innerHTML = '<div class="nws-reserved"><b>Sección en construcción</b><span>Esta sección aún no está disponible.</span></div>';
     }
@@ -533,14 +603,24 @@
     }
   }
 
+  /* DC-047: al cambiar de pestaña con las tabs pegadas, el scroll queda en el inicio del contenido (bajo head + tabnav). */
+  function alInicioDelContenido() {
+    var panel = document.getElementById('nws-panel'), hd = document.querySelector('.nws-head'), nav = document.querySelector('.nws-tabnav');
+    if (!panel || !hd || !nav) return;
+    var meta = panel.getBoundingClientRect().top + window.pageYOffset - hd.offsetHeight - nav.offsetHeight;
+    if (window.pageYOffset > meta) window.scrollTo(0, Math.max(0, meta));
+  }
+
   /* ---------- router ---------- */
   function render() {
     var route = parseHash();
     syncMenu(route);
     var sameDetail = route.view === 'detalle' && state.view === 'detalle' && state.code === route.code && document.getElementById('nws-panel');
     if (sameDetail) {
+      var cambioTab = state.lastTab !== currentTab(route);
       if (state.tabsEl && state.tabsEl.value !== currentTab(route)) state.tabsEl.value = currentTab(route);
       renderPanel(route);
+      if (cambioTab) alInicioDelContenido();
       return;
     }
     var cambioVista = !(state.view === route.view && state.code === route.code);

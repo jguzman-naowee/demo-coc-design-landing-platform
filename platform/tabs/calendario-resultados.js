@@ -276,7 +276,8 @@
     var est = N.estadoPrueba(p), conRes = est !== 'Programado' && tieneRes(p);
     var sub = [p.ronda, p.escenario].filter(Boolean).map(esc).join(' · ');
     var cop = !conRes && est !== 'Programado' ? OLC.colombiaEtiqueta(p) : ''; /* DC-130: programada sin chip */
-    var tit = '<span class="nwtab-tg__t"><span class="nwtab-pn"><b>' + esc(p.nombre) + '</b>' + N.sexTag(p.sexo) + (cop ? '<span class="nwtab-cop">' + esc(cop) + '</span>' : '') + '</span>' + (sub ? '<span class="nwtab-sub">' + sub + '</span>' : '') + '</span>';
+    /* DC-026: caja con el nombre + columna (género arriba, "Fase · sede" con elipsis debajo). */
+    var tit = '<span class="nwtab-tg__t"><b class="nwtab-tg__nm">' + esc(p.nombre) + '</b><span class="nwtab-tg__mt"><span class="nwtab-pn">' + N.sexTag(p.sexo) + (cop ? '<span class="nwtab-cop">' + esc(cop) + '</span>' : '') + '</span>' + (sub ? '<span class="nwtab-sub nwtab-tg__sb" title="' + sub + '">' + sub + '</span>' : '') + '</span></span>';
     /* Programada: solo la cabecera, sin bloque de resultados ni colapsable. */
     if (!conRes) return '<article class="nwtab-pr nwtab-pr--prog"><header class="nwtab-pr__hd"><div class="nwtab-tg nwtab-tg--st">' + tit + '</div><div class="nwtab-pr__ac"><span class="nwtab-st nwtab-st--prog">' + N.esc(est) + ICO_CAL + '</span></div></header></article>';
     var abierta = pruebaAbierta(p, ui), id = 'nwtab-r-' + p.id;
@@ -383,6 +384,9 @@
       (sexos.length > 1 ? selectHtml('f-sex', 'Género', pr.sexo || '', [['', 'Todos']].concat(sexos.map(function (s) { return [s, SEXOS[s]]; }))) : '') +
       (rondas.length > 1 ? selectHtml('f-ron', 'Ronda', ui.ronda, [['', 'Todas las rondas']].concat(rondas.map(function (r) { return [r, r]; }))) : '');
     var hayFiltro = !!(pr.sexo || pr.deporte || ui.prueba || ui.ronda), colOn = N.colOn(pr, data);
+    /* DC-101: siempre pintado (deshabilitado sin filtros) para que el panel no cambie de alto. */
+    var hayAlgo = hayFiltro || (N.hayColombia(data) && !colOn) || !!pr.q;
+    if (ctrl) ctrl += '<div class="nwtab-clr"><button type="button" class="nwtab-btn nwtab-btn--clr" data-k="clr-all" data-clr-all="1"' + (hayAlgo ? '' : ' disabled aria-disabled="true"') + '><i class="naotech-icon-refresh" aria-hidden="true"></i>Limpiar filtros</button></div>';
 
     var main = '';
     if (!base.length) {
@@ -404,6 +408,7 @@
     el.innerHTML = h;
     bind(el, ctx, ui, base.filter(function (p) { return p.fecha === dia; }));
     centrarTira(el);
+    compactarTira(el);
     /* Compatibilidad: ?prueba=<id> abre el modal sobre el calendario. */
     var dp = pr.prueba && data.pruebas.filter(function (x) { return x.id === pr.prueba; })[0];
     if (dp) abrirModal(el, ctx, dp);
@@ -414,6 +419,37 @@
     var tira = el.querySelector('.nwtab-strip'), sel = tira && tira.querySelector('.is-sel'); if (!sel) return;
     var r = sel.getBoundingClientRect(), t = tira.getBoundingClientRect();
     tira.scrollLeft += (r.left + r.width / 2) - (t.left + t.width / 2);
+  }
+
+  /* DC-053: al pegarse, la tira pasa a is-stuck (compacta, ancho completo) como en el landing; centinela + IntersectionObserver. */
+  function compactarTira(el) {
+    if (el._nwtabCalOff) el._nwtabCalOff();
+    var cal = el.querySelector('.nwtab-cr__cal'), sec = cal && cal.parentNode;
+    if (!cal || !window.IntersectionObserver) return;
+    var sent = document.createElement('div'); sent.className = 'nwtab-cal-sent'; sent.setAttribute('aria-hidden', 'true'); sec.insertBefore(sent, cal);
+    var io = null;
+    var mide = function () { /* alturas llena y compacta: el offset de filtros y el hueco de la tira dependen de ellas */
+      var v = cal.classList.contains('is-stuck'); cal.classList.remove('is-stuck');
+      var full = cal.offsetHeight; cal.classList.add('is-stuck'); var c = cal.offsetHeight;
+      cal.classList.toggle('is-stuck', v);
+      sec.style.setProperty('--nwtab-cal-full', full + 'px'); sec.style.setProperty('--nwtab-cal-h', c + 'px');
+    };
+    var centra = function () { centrarTira(el); };
+    var fija = function (v) { if (cal.classList.contains('is-stuck') !== v) { cal.classList.toggle('is-stuck', v); centra(); } };
+    var limpia = function () { if (io) io.disconnect(); io = null; window.removeEventListener('resize', arma); delete el._nwtabCalOff; };
+    function arma() {
+      if (io) io.disconnect(); io = null;
+      if (!el.contains(cal)) return limpia();
+      var off = parseFloat(getComputedStyle(cal).top);
+      if (getComputedStyle(cal).position !== 'sticky' || isNaN(off)) { fija(false); return; }
+      mide();
+      fija(sent.getBoundingClientRect().bottom <= off);
+      io = new IntersectionObserver(function (es) { fija(es[es.length - 1].boundingClientRect.bottom <= off); }, { rootMargin: '-' + off + 'px 0px 0px 0px', threshold: [0, 1] });
+      io.observe(sent);
+    }
+    window.addEventListener('resize', arma);
+    el._nwtabCalOff = limpia;
+    arma();
   }
 
   function bind(el, ctx, ui, visibles) {
@@ -449,6 +485,19 @@
         visibles.forEach(function (p) { ui.p[p.id] = v; }); /* también las de grupos cerrados */
         again('mas');
       });
+    });
+    /* DC-101: restablece filtros (no dia ni tab); si queda deshabilitado, el foco pasa al primer control. */
+    on('[data-clr-all]', 'click', function () {
+      var sc = window.scrollY; ui.prueba = ''; ui.ronda = '';
+      ctx.go({ deporte: '', prueba: '', sexo: '', q: '', colombia: '' });
+      var n = 0, f = function () {
+        var r = document.querySelector('.nwtab-calres [data-k="clr-all"]');
+        if (!r) { if (n++ < 20) setTimeout(f, 30); return; }
+        var t = r.disabled ? document.querySelector('.nwtab-calres .nwtab-cr__side [data-k="col"], .nwtab-calres .nwtab-cr__side select') : r;
+        if (t) t.focus({ preventScroll: true });
+        if (Math.abs(window.scrollY - sc) > 1) window.scrollTo(window.scrollX, sc);
+      };
+      setTimeout(f, 30);
     });
     on('[data-clr]', 'click', function () { ui.prueba = ''; ui.ronda = ''; N.go(ctx, { sexo: '', colombia: '', deporte: '' }, 'clr'); });
   }
