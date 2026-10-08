@@ -1,11 +1,11 @@
-/* Componente: lista de inscritos de Colombia (deportista × prueba) con búsqueda, filtros, orden y paginación. */
+/* Componente: nómina de Colombia (deportista × prueba) con búsqueda, filtros, orden y paginación. */
 (function () {
   var C = window.NWIN, U = C.U, esc = C.esc, num = C.num, plural = C.plural, GEN = C.GEN;
   var PS = 10;
   var COLS = { nombre: 'Deportista', dep: 'Deporte · Prueba', cat: 'Categoría', fecha: 'Fecha', res: 'Resultado' };
   var EST = { Finalizado: 'Finalizada', 'En curso': 'En curso', Programado: 'Programada' };
 
-  /* Misma regla de dedupe que calc(): una inscripción por deportista (o equipo) en cada prueba. */
+  /* Misma regla de dedupe que calc(): una participación por deportista (o equipo) en cada prueba. */
   function inscritos(data) {
     var seen = {}, out = [];
     (data.pruebas || []).forEach(function (p) {
@@ -59,8 +59,8 @@
         '<td class="nwtab-in-ti__p"><small title="' + esc(r.dep) + '">' + esc(r.dep) + '</small><b title="' + esc(r.prueba) + '">' + esc(r.prueba) + '</b></td><td class="nwtab-in-ti__c">' + esc(GEN[r.sx] || '') + '</td><td class="nwtab-in-ti__f">' + esc(OLC.diaCorto(r.fecha)) + '</td>' +
         (tp === 'futuro' ? '' : '<td class="nwtab-in-ti__r">' + (r.puesto ? r.puesto + '.º' + (r.marca ? ' · ' + esc(r.marca) : '') + ' ' + medalla(r.med) : '<span class="nwtab-in-pend">' + esc(EST[r.est] || 'Programada') + '</span>') + '</td>') + '</tr>';
     }).join('');
-    var tabla = total ? '<div class="nwtab-in-tw"><table class="nw-table nwtab-in-ti' + (tp === 'futuro' ? ' nwtab-in-ti--fut' : '') + '"><caption class="nwtab-vh">' + plural(total, 'inscripción', 'inscripciones') + ', ordenadas por ' + COLS[t.sortK].toLowerCase() + '</caption><thead><tr>' + th('nombre', t, 'l') + th('dep', t, 'l') + th('cat', t, 'l') + th('fecha', t, 'l') + (tp === 'futuro' ? '' : th('res', t, 'l')) + '</tr></thead><tbody>' + body + '</tbody></table></div>'
-      : C.vacio('Sin resultados', 'Ninguna inscripción coincide con la búsqueda o los filtros.');
+    var tabla = total ? '<div class="nwtab-in-tw"><table class="nw-table nwtab-in-ti' + (tp === 'futuro' ? ' nwtab-in-ti--fut' : '') + '"><caption class="nwtab-vh">' + plural(total, 'participación', 'participaciones') + ', ordenadas por ' + COLS[t.sortK].toLowerCase() + '</caption><thead><tr>' + th('nombre', t, 'l') + th('dep', t, 'l') + th('cat', t, 'l') + th('fecha', t, 'l') + (tp === 'futuro' ? '' : th('res', t, 'l')) + '</tr></thead><tbody>' + body + '</tbody></table></div>'
+      : C.vacio('Sin resultados', 'Ninguna participación coincide con la búsqueda o los filtros.');
     var pie = total && pages > 1 ? '<nav class="nw-pager" aria-label="Paginación"><button type="button" data-tk="pg-prev" data-in-page="-1" aria-label="Página anterior"' + (page <= 1 ? ' disabled' : '') + '><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 5l-5 5 5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Página <b>' + page + '</b> de ' + pages + '</span><button type="button" data-tk="pg-next" data-in-page="1" aria-label="Página siguiente"' + (page >= pages ? ' disabled' : '') + '><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></nav>' : '';
     return tabla + pie;
   }
@@ -73,7 +73,7 @@
     return o;
   }
   function selRapido(rows, t, tp) {
-    return '<label class="nwtab-in-fl nwtab-in-fl--h"><span class="nwtab-vh">Filtro rápido de inscripciones</span><select class="nwtab-in-fi" data-in-chip-sel>' + opcionesRapido(rows, t, tp).map(function (o) {
+    return '<label class="nwtab-in-fl nwtab-in-fl--h"><span class="nwtab-vh">Filtro rápido de la nómina</span><select class="nwtab-in-fi" data-in-chip-sel>' + opcionesRapido(rows, t, tp).map(function (o) {
       return '<option value="' + o[0] + '"' + (t.chip === o[0] ? ' selected' : '') + '>' + o[1] + ' · ' + num(o[2]) + '</option>';
     }).join('') + '</select></label>';
   }
@@ -93,8 +93,8 @@
       lab('Deporte', '<select class="nwtab-in-fi" data-in-f="dep">' + opts(deps.map(function (d) { return [d, d]; }), t.dep, 'Todos (' + deps.length + ')') + '</select>') +
       lab('Categoría', '<select class="nwtab-in-fi" data-in-f="cat">' + opts(cats.map(function (x) { return [x, GEN[x] || x]; }), t.cat, 'Todas') + '</select>') +
       lab('Jornada', '<select class="nwtab-in-fi" data-in-f="jor">' + opts(jors.map(function (j) { return [j, OLC.diaCorto(j)]; }), t.jor, 'Todas (' + jors.length + ')') + '</select>') + '</div>';
-    var paras = [plural(rows.length, 'inscripción', 'inscripciones') + ' de ' + plural(c.deportistas, 'deportista', 'deportistas') + ' de Colombia.', 'Los equipos, relevos y dobles se inscriben como «Colombia».'];
-    return C.card('tabla', 'Inscripciones de Colombia', paras, tools + '<div data-in-res>' + resultados(rows, t, c.t) + '</div>', selRapido(rows, t, c.t), 'nwtab-in-card--tabla');
+    var paras = [plural(rows.length, 'participación', 'participaciones') + ' de ' + plural(c.deportistas, 'deportista', 'deportistas') + ' de Colombia.', 'Los equipos, relevos y dobles figuran como «Colombia».'];
+    return C.card('tabla', 'Nómina de Colombia', paras, tools + '<div data-in-res>' + resultados(rows, t, c.t) + '</div>', selRapido(rows, t, c.t), 'nwtab-in-card--tabla');
   }
 
   function bind(el, ui, data, c) {

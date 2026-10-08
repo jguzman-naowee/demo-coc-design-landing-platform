@@ -323,7 +323,7 @@
       var ex = LPT.sexosDe(data);
       var sexo = ex.length > 1 && ex.indexOf(pr.sexo) >= 0 ? pr.sexo : '';
       var hayCol = data.colombia.participa > 0;
-      var solo = hayCol && pr.colombia !== '0';
+      var solo = false; /* sin interruptor: los datos ya traen solo pruebas con Colombia (OLC.soloColombia) */
       var depSel = data.deportes.some(function (d) { return d.codigo === pr.deporte; }) ? pr.deporte : '';
 
       /* opciones de selects: solo las que existen (acotadas por deporte); un select con una única opción no se pinta */
@@ -352,13 +352,13 @@
       }
 
       /* DC-123: el interruptor abre la caja de filtros, antes de Deporte. */
-      var sw = !hayCol ? '' : '<div class="lp-tg"><div class="lp-tg-r"><span class="lp-tg-l" id="lp-tg-l"><span>Solo pruebas</span> <span>con Colombianos</span></span><button type="button" class="lp-tg-sw" role="switch" aria-checked="' + solo + '" aria-labelledby="lp-tg-l" data-colombia></button></div></div>';
+      var sw = ''; /* sin interruptor «Solo pruebas con Colombianos»: solo se registran pruebas con Colombia */
       var fl = sw + selectField('lp-f-dep', 'Deporte', depSel, data.deportes.map(function (d) { return [d.codigo, d.nombre]; }), 'Todos los deportes') +
         selectField('lp-f-pru', 'Prueba', ui.prueba, nombres.map(function (n) { return [n, n]; }), 'Todas las pruebas') +
         selectField('lp-f-sex', 'Género', sexo, LPT.sexosDe(data).map(function (k) { return [k, LPT.SEXOS.filter(function (o) { return o[0] === k; })[0][1]]; }), 'Todos') +
         selectField('lp-f-ron', 'Ronda', ui.ronda, rondas.map(function (n) { return [n, n]; }), 'Todas las rondas');
       /* DC-101: deshabilitado (no oculto) sin filtros, para que la tarjeta no cambie de alto. */
-      var hayFiltro = !!(pr.deporte || pr.sexo || depSel || sexo || ui.prueba || ui.ronda || (hayCol && !solo));
+      var hayFiltro = !!(pr.deporte || pr.sexo || depSel || sexo || ui.prueba || ui.ronda);
       if (fl) fl += '<div class="lp-fl-act"><button type="button" class="lp-btn lp-fl-clr" data-fl-limpiar' + (hayFiltro ? '' : ' disabled aria-disabled="true"') + '>Limpiar filtros</button></div>';
       var h = '<div class="lp-tab lp-cal">' + miniCal(data, ctx, dia, ui, porDia) + '<div class="lp-cr"><aside class="lp-aside" aria-label="Filtros">' +
         (fl ? '<div class="lp-fl">' + fl + '</div>' : '') + '</aside><section class="lp-day" aria-labelledby="lp-h-dia">';
@@ -373,7 +373,7 @@
           '<div class="lp-all-m" id="lp-all-m" role="menu" aria-label="Pruebas de la jornada" hidden><button type="button" role="menuitem" data-all="1">' + IC_ALL.exp + '<span>Expandir todo</span></button><button type="button" role="menuitem" data-all="0">' + IC_ALL.con + '<span>Contraer todo</span></button></div></div></div></div>';
         var comentar = (delDia.filter(function (p) { return p.estado === 'En vivo' && hayResultado(p); })[0] || delDia.filter(function (p) { return p.estado === 'Finalizado' && hayResultado(p); })[0] || {}).id;
         if (!delDia.length) {
-          h += '<div class="lp-empty"><p>No hay competencias' + (solo ? ' con Colombia' : '') + ' este día.</p></div>';
+          h += '<div class="lp-empty"><p>Colombia no compite este día.</p></div>';
         }
         h += gruposDe(data, dia, delDia, ui).map(function (g) { return grupoHtml(g, ctx, ui, 'h3', comentar); }).join('');
       }
