@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contrapropuesta · Evento y dashboard</title>
+<meta name="description" content="Por qué proponemos un solo lugar por evento en lugar de un dashboard detrás de un botón.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f5f6fa;--card:#fff;--line:#e3e5ef;--ink:#20212b;--mut:#5a5c70;--blue:#1f55d6;--blue-s:#e8eefc;--acc:#e8b923;--ok:#177245;--ok-s:#e6f5ec;--bad:#b3261e;--bad-s:#fdecea;--navy:#101a3a}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Mulish,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+  a{color:var(--blue)}
+  a:focus-visible{outline:3px solid var(--acc);outline-offset:2px;border-radius:6px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  header.top{background:var(--navy);color:#fff;padding:52px 0 44px}
+  .eyebrow{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin:0 0 10px}
+  h1{font-size:clamp(28px,4.5vw,42px);line-height:1.15;margin:0 0 12px;font-weight:900;max-width:20ch}
+  .lead{font-size:18px;color:#d7defa;margin:0;max-width:48ch}
+  section{padding:56px 0 0}
+  h2{font-size:clamp(22px,3vw,30px);line-height:1.2;margin:0 0 6px;font-weight:900}
+  .sub{color:var(--mut);margin:0 0 24px}
+  h3{font-size:18px;margin:0 0 4px;font-weight:800;line-height:1.3}
+  p{margin:0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+  .tag{display:inline-block;font-size:12px;font-weight:800;padding:3px 10px;border-radius:999px;margin-bottom:10px;background:var(--blue-s);color:var(--blue)}
+  .tag.ok{background:var(--ok-s);color:var(--ok)}.tag.bad{background:var(--bad-s);color:var(--bad)}
+
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .ba figure{margin:0}
+  .ba img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+  .ba figcaption{font-size:14px;color:var(--mut);margin-top:8px}
+  .arrow-note{display:flex;align-items:center;gap:10px;margin:16px 0 0;font-weight:800;color:var(--bad)}
+  .arrow-note span{background:var(--bad-s);padding:4px 12px;border-radius:999px;font-size:14px}
+
+  .frame{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 6px 20px rgba(16,26,58,.07)}
+  .frame .bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#eef0f7;border-bottom:1px solid var(--line);font-size:12px;color:var(--mut)}
+  .frame .bar a{margin-left:auto;font-weight:700}
+  .shot{position:relative;height:480px;overflow:hidden;background:#f5f6fa}
+  .shot iframe{position:absolute;left:0;top:0;width:1440px;height:1100px;border:0;transform:scale(.7);transform-origin:0 0;pointer-events:none}
+
+  .tabs{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
+  .tabs span{padding:6px 14px;border-radius:999px;background:var(--blue-s);color:var(--blue);font-weight:700;font-size:14px}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .dec p{color:var(--mut);font-size:15px}
+  .dec .n{font-size:13px;font-weight:800;color:var(--blue);letter-spacing:.1em;margin-bottom:6px}
+
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:12px}
+  .step{padding:5px 12px;border-radius:999px;background:#eef0f7;font-size:13px;font-weight:700}
+  .step.hit{background:var(--ok-s);color:var(--ok)}.step.miss{background:var(--bad-s);color:var(--bad)}
+  .arrow{color:#9aa0bd;font-weight:800}
+  .count{font-size:38px;line-height:1;font-weight:900;margin:4px 0 6px}
+  .count.ok{color:var(--ok)}.count.bad{color:var(--bad)}
+
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;font-size:15px}
+  th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--line)}
+  thead th{background:#eef0f7;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+  tbody th{width:22%}
+  tr:last-child th,tr:last-child td{border-bottom:0}
+  .cta{margin:56px 0 0;background:var(--navy);color:#fff;border-radius:20px;padding:28px 32px}
+  .cta h2{color:#fff}.cta p{color:#d7defa}
+  .btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+  .btn{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:12px;font-weight:800;text-decoration:none;background:var(--acc);color:#20212b}
+  .btn.alt{background:transparent;color:#fff;border:2px solid #5a6aa8}
+  footer{padding:32px 0 48px;color:var(--mut);font-size:13px}
+  @media (max-width:860px){
+    .ba,.grid3,.grid2{grid-template-columns:1fr}
+    .shot{height:300px}.shot iframe{transform:scale(.27)}
+    table,thead,tbody,tr,th,td{display:block}thead{display:none}tbody th{width:auto;background:#eef0f7}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <p class="eyebrow">Contrapropuesta</p>
+    <h1>Todo el evento en un solo lugar</h1>
+    <p class="lead">El dashboard no va detrás de un botón: es una pestaña más del evento.</p>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+  <section aria-labelledby="h-antes">
+    <h2 id="h-antes">Hoy: el evento se parte en dos pantallas</h2>
+    <p class="sub">El dashboard del evento queda detrás de «Ver dashboard del evento».</p>
+    <div class="ba">
+      <figure><img src="assets/antes-evento.png" alt="Pantalla actual de un evento, con el botón «Ver dashboard del evento» y las pestañas Deportistas y Deportes" loading="lazy"><figcaption><b>1 · Evento.</b> Datos, Deportistas y Deportes.</figcaption></figure>
+      <figure><img src="assets/antes-dashboard.png" alt="Pantalla actual del dashboard del evento, con las pestañas Inscripciones, Resultados y Medallería" loading="lazy"><figcaption><b>2 · Dashboard.</b> Otra pantalla: Inscripciones, Resultados y Medallería.</figcaption></figure>
+    </div>
+    <p class="arrow-note"><span>Costo</span> Para pasar de una a otra hay un botón y un «Volver al evento».</p>
+  </section>
+
+  <section aria-labelledby="h-prop">
+    <h2 id="h-prop">Propuesta: una página, cinco pestañas</h2>
+    <p class="sub">Lo que estaba en el dashboard pasa a ser parte del evento.</p>
+    <div class="frame"><div class="bar"><span>Prototipo · Evento</span><a href="platform/index.html#/eventos/jja-2026?tab=medalleria" target="_blank" rel="noopener">Abrir</a></div>
+      <div class="shot"><iframe loading="lazy" src="platform/index.html#/eventos/jja-2026?tab=medalleria" title="Vista previa de un evento en el prototipo" tabindex="-1"></iframe></div></div>
+    <div class="tabs" aria-label="Pestañas del evento"><span>Información</span><span>Deportes</span><span>Inscripciones</span><span>Calendario y resultados</span><span>Medallería</span></div>
+  </section>
+
+  <section aria-labelledby="h-dec">
+    <h2 id="h-dec">Qué decidimos y por qué</h2>
+    <p class="sub">Una frase cada una.</p>
+    <div class="grid3">
+      <div class="card dec"><div class="n">1</div><h3>Una sola página</h3><p>Quien consulta un evento no cambia de pantalla.</p></div>
+      <div class="card dec"><div class="n">2</div><h3>Mismas pestañas siempre</h3><p>Se aprende una vez y sirve en todos los eventos.</p></div>
+      <div class="card dec"><div class="n">3</div><h3>Del resumen al detalle</h3><p>Indicadores arriba, tablas abajo, explicaciones en el ⓘ.</p></div>
+      <div class="card dec"><div class="n">4</div><h3>Sin enlaces vacíos</h3><p>El menú solo lista lo que tiene contenido.</p></div>
+      <div class="card dec"><div class="n">5</div><h3>Plataforma y landing iguales</h3><p>Mismos datos y estructura; una cifra no cambia según dónde se mire.</p></div>
+      <div class="card dec"><div class="n">6</div><h3>Sin scroll horizontal</h3><p>Accesible por teclado y legible en cualquier pantalla.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-boton">
+    <h2 id="h-boton">Qué cuesta el botón</h2>
+    <p class="sub">Pasos para ver Medallería. Recorrido ilustrativo, no una medición.</p>
+    <div class="grid2">
+      <div class="card"><span class="tag ok">Propuesta</span><p class="count ok">1 clic</p>
+        <div class="flow"><span class="step">Evento</span><span class="arrow">→</span><span class="step hit">Medallería</span></div></div>
+      <div class="card"><span class="tag bad">Hoy</span><p class="count bad">3 pasos</p>
+        <div class="flow"><span class="step">Evento</span><span class="arrow">→</span><span class="step miss">Ver dashboard</span><span class="arrow">→</span><span class="step">Medallería</span></div></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-sep">
+    <h2 id="h-sep">Dashboard y evento, cada uno con su pregunta</h2>
+    <p class="sub">Separar sí, pero por lo que responde cada uno, no escondiendo uno.</p>
+    <table>
+      <thead><tr><th></th><th>Dashboard Ciclo Olímpico</th><th>Evento</th></tr></thead>
+      <tbody>
+        <tr><th>Pregunta</th><td>¿Cómo vamos en el ciclo?</td><td>¿Qué pasa en este evento?</td></tr>
+        <tr><th>Alcance</th><td>Varios eventos</td><td>Un evento</td></tr>
+        <tr><th>Uso</th><td>Análisis y decisión</td><td>Seguimiento diario</td></tr>
+        <tr><th>Entrada</th><td>Ítem propio del menú</td><td>Listado → evento</td></tr>
+      </tbody>
+    </table>
+    <div class="grid3" style="margin-top:16px">
+      <div class="card dec"><div class="n">HOY</div><h3>Dashboard visible</h3><p>Primer ítem del menú.</p></div>
+      <div class="card dec"><div class="n">SIGUIENTE</div><h3>Puentes</h3><p>Del evento al dashboard y de vuelta, con el evento ya elegido.</p></div>
+      <div class="card dec"><div class="n">DESPUÉS</div><h3>Nombres propios</h3><p>«Panorama del ciclo» y «Evento».</p></div>
+    </div>
+
+    <div class="cta">
+      <h2>Qué proponemos</h2>
+      <p>Dashboard visible, evento completo en una página y un botón solo como atajo.</p>
+      <div class="btns">
+        <a class="btn" href="demo.html?f=platform#/dashboards">Ver el dashboard</a>
+        <a class="btn alt" href="demo.html?f=platform#/eventos/jja-2026">Ver un evento</a>
+        <a class="btn alt" href="index.html">Prototipos</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+</main>
+<footer><div class="wrap">Prototipo con datos sintéticos. Las capturas de «Hoy» son recortes de la pantalla actual, sin datos de personas.</div></footer>
+</body>
+</html>
