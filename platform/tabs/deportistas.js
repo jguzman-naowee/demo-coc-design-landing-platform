@@ -88,7 +88,7 @@
   N.hayColombia = function (data) { return !!(data.colombia && data.colombia.participa > 0); };
   N.colOn = function (params, data) { return N.hayColombia(data) && String(params.colombia) !== '0'; };
   N.colSwitch = function (params, data) {
-    if (!N.hayColombia(data)) return '';
+    return ''; /* sin interruptor: solo se registran pruebas con Colombia */
     var on = N.colOn(params, data); /* ausente = encendido; 0 = apagado */
     return '<button type="button" class="nwtab-sw" role="switch" aria-checked="' + on + '" data-k="col" data-col="' + (on ? '0' : '') + '"><span class="nwtab-sw__t" aria-hidden="true"><i></i></span><span class="nwtab-sw__l"><span>Solo pruebas</span> <span>con Colombianos</span></span></button>';
   };

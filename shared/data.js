@@ -448,4 +448,20 @@
     colombiaDia: colombiaDia, resultadoFilas: resultadoFilas, bandera: bandera, paisNombre: paisNombre, colombiaEtiqueta: colombiaEtiqueta, colombianoEtiqueta: colombianoEtiqueta,
     fechaLarga: fechaLarga, fechaCorta: fechaCorta, diaCorto: diaCorto
   };
+  /* Solo se registra lo de Colombia: Deportes y Calendario reciben únicamente las pruebas con colombianos y sus deportes.
+     Medallería sigue con el evento completo porque el medallero compara países. Se calcula una vez por evento. */
+  var COL = {};
+  window.OLC.soloColombia = function (data) {
+    var k = data && data.evento && data.evento.code;
+    if (!k) return data;
+    if (COL[k] && COL[k].src === data) return COL[k].v;
+    var pr = data.pruebas.filter(function (p) { return p.participa; }), cods = {}, v = {};
+    pr.forEach(function (p) { cods[p.deporte] = 1; });
+    Object.keys(data).forEach(function (x) { v[x] = data[x]; });
+    v.pruebas = pr;
+    v.deportes = (data.deportes || []).filter(function (d) { return cods[d.codigo]; });
+    v.dias = (data.dias || []).filter(function (d) { return pr.some(function (p) { return p.fecha === d; }); });
+    COL[k] = { src: data, v: v };
+    return v;
+  };
 })();

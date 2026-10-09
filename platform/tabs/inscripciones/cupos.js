@@ -4,7 +4,7 @@
   /* Hasta 40 cupos se dibujan uno por cuadro (contables); más que eso, barra continua. */
   function cupos(c) {
     var n = c.deportistas, tot = Math.ceil(n * 1.15 / 10) * 10, libres = tot - n, p = pct(n, tot), cuerpo, i, cs = '';
-    if (!n) return card('cupos', por(c, { pasado: '¿Cuántos cupos se usaron?', presente: '¿Cuántos cupos se han usado?', futuro: '¿Cuántos cupos se han usado hasta ahora?' }), ['Deportistas de Colombia frente al límite de cupos del evento.'], vacio('Sin datos disponibles', 'Todavía no hay deportistas de Colombia inscritos.'));
+    if (!n) return card('cupos', por(c, { pasado: '¿Cuántos cupos se usaron?', presente: '¿Cuántos cupos se han usado?', futuro: '¿Cuántos cupos se han usado hasta ahora?' }), ['Deportistas de Colombia frente al límite de cupos del evento.'], vacio('Sin datos disponibles', 'Todavía no hay deportistas de Colombia en la nominal.'));
     if (tot <= 40) { for (i = 0; i < tot; i++) cs += '<i class="' + (i < n ? 'is-on' : '') + '"></i>'; }
     cuerpo = '<div class="nwtab-in-cu"><p class="nwtab-in-cu__lead"><strong>' + num(n) + '</strong><span>de ' + num(tot) + ' cupos</span></p><div class="nwtab-in-cu__m">' +
       (tot <= 40 ? '<div class="nwtab-in-sq" role="img" aria-label="' + n + ' de ' + tot + ' cupos usados, ' + libres + ' sin usar" style="grid-template-columns:repeat(' + tot + ',minmax(0,1fr))">' + cs + '</div>'

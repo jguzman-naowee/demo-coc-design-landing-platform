@@ -53,10 +53,10 @@
     base.sort();
     return {
       t: tiempo(data), deportistas: names.length, ins: ins, insEq: insEq, tot: tot, genero: g, listSum: listSum,
-      pruebas: Object.keys(ev).length, pruebasCol: Object.keys(ev).filter(function (k) { return ev[k].col; }).length,
-      deps: deps, tipos: T, jornadas: base.map(function (f) { return { fecha: f, n: insDia[f] || 0 }; }),
-      sinCol: Object.keys(ev).filter(function (k) { return !ev[k].col; }).map(function (k) { return ev[k]; }),
-      paises: (data.paises || []).length
+      /* Nominal: solo se lleva lo de Colombia. Nada de pruebas o deportes del evento sin Colombia, ni de cuántos hay en total. */
+      pruebasCol: Object.keys(ev).filter(function (k) { return ev[k].col; }).length,
+      deps: deps.filter(function (s) { return s.pc > 0 || s.ins > 0; }), tipos: T,
+      jornadas: base.map(function (f) { return { fecha: f, n: insDia[f] || 0 }; }).filter(function (j) { return j.n > 0; })
     };
   }
 

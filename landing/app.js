@@ -675,7 +675,7 @@
     lastTab = r.code + tab;
 
     var ctx = {
-      audience: 'landing', data: data, event: ev, params: r.params, ui: ui,
+      audience: 'landing', data: tab === 'deportes' || tab === 'calendario-resultados' ? OLC.soloColombia(data) : data, event: ev, params: r.params, ui: ui,
       go: function (patch) {
         var h = build(r.path, merge(parseHash().params, patch));
         if (h === location.hash) render(); else location.hash = h;

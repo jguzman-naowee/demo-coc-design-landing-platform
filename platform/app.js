@@ -8,7 +8,7 @@
   var TABS = [
     { id: 'informacion', label: 'Información' },
     { id: 'deportes', label: 'Deportes' },
-    { id: 'inscripciones', label: 'Inscripciones' },
+    { id: 'inscripciones', label: 'Nominal' },
     { id: 'calendario-resultados', label: 'Calendario y resultados' },
     { id: 'medalleria', label: 'Medallería' }
   ];
@@ -546,7 +546,7 @@
     }).map(function (t) {
       return t.id === 'calendario-resultados' ? { id: t.id, label: etiquetaCalendario(ev) } : t;
     });
-    /* El orden es fijo (Información, Deportes, Inscripciones, Calendario, Medallería): Información va primero y abre por defecto; la clave solo se marca. */
+    /* El orden es fijo (Información, Deportes, Nominal, Calendario, Medallería): Información va primero y abre por defecto; la clave solo se marca. */
     return vis.map(function (t) { return t.id === clave ? Object.assign({}, t, { clave: true }) : t; });
   }
   /* Qué sección importa según el momento del evento: pasó, está pasando o viene. */
@@ -575,7 +575,7 @@
     state.lastTab = tab;
     var ui = (tabUi[route.code] = tabUi[route.code] || {});
     var ctx = {
-      audience: 'platform', data: data, event: data.evento, params: route.params, ui: ui,
+      audience: 'platform', data: tab === 'deportes' || tab === 'calendario-resultados' ? OLC.soloColombia(data) : data, event: data.evento, params: route.params, ui: ui,
       go: function (patch) {
         var r = parseHash();
         var next = buildHash(r.code, merge(r.params, patch));
@@ -593,7 +593,7 @@
         panel.innerHTML = '<div class="nws-reserved"><b>No se pudo mostrar esta sección</b><span>Intenta recargar la página.</span></div>';
       }
     } else if (tab === 'inscripciones') {
-      panel.innerHTML = '<div class="nws-reserved"><b>Inscripciones</b></div>';
+      panel.innerHTML = '<div class="nws-reserved"><b>Nominal</b></div>';
     } else {
       panel.innerHTML = '<div class="nws-reserved"><b>Sección en construcción</b><span>Esta sección aún no está disponible.</span></div>';
     }

@@ -271,13 +271,13 @@
       items.map(function (i) { return '<li><i class="nwtab-md-dot" style="background:' + i.c + '" aria-hidden="true"></i><span>' + i.t + '</span><small>' + pct(i.n, total) + ' %</small><b>' + i.n + '</b></li>'; }).join('') + '</ul></div>';
   }
 
-  /* Medallas por cada 100 inscripciones (barras del mockup, una por género). */
+  /* Medallas por cada 100 participaciones (barras del mockup, una por género). */
   function convFilas(ins, g) {
     var f = [['Mujeres', g.F, ins.F, 'var(--md-f)'], ['Hombres', g.M, ins.M, 'var(--md-m)'], ['Mixtas', g.X, ins.X, 'var(--md-x)']].filter(function (r) { return r[2] > 0; });
     var best = f.reduce(function (a, r) { var c = r[2] ? r[1] / r[2] : 0; return c > a ? c : a; }, 0);
     return '<ul class="nwtab-md-conv"><li class="nwtab-md-conv__h" aria-hidden="true"><span>Género</span><span>Proporción</span><span>Por cada 100</span><span>Medallas / inscr.</span></li>' + f.map(function (r) {
       var c = Math.round(r[1] / r[2] * 100), top = r[2] && r[1] / r[2] === best && f.length > 1;
-      return '<li><span class="nwtab-md-conv__l">' + r[0] + '</span><span class="nwtab-md-conv__t" role="img" aria-label="' + c + ' medallas por cada 100 inscripciones de ' + r[0].toLowerCase() + '"><i style="width:' + Math.min(100, c) + '%;background:' + r[3] + '"></i></span><b class="' + (top ? 'is-best' : '') + '">' + c + '</b><small>' + r[1] + ' de ' + r[2] + '</small></li>';
+      return '<li><span class="nwtab-md-conv__l">' + r[0] + '</span><span class="nwtab-md-conv__t" role="img" aria-label="' + c + ' medallas por cada 100 participaciones de ' + r[0].toLowerCase() + '"><i style="width:' + Math.min(100, c) + '%;background:' + r[3] + '"></i></span><b class="' + (top ? 'is-best' : '') + '">' + c + '</b><small>' + r[1] + ' de ' + r[2] + '</small></li>';
     }).join('') + '</ul>';
   }
 
@@ -293,7 +293,7 @@
     var h = '<div class="nwtab-md-sec">' + head('Medallas por género', 'Cuántas medallas ganó Colombia en pruebas de cada género. El género sale del sexo registrado en la prueba; una medalla de equipo cuenta una vez por cada integrante registrado.', '', 'md-gen') + '<section class="nwtab-md-card" aria-labelledby="md-gen">';
     if (!total) return h + '<div class="nwtab-md-na"><b>Colombia aún no tiene medallas</b><span>El desglose por género aparece con la primera medalla.</span></div></section></div>';
     h += '<div class="nwtab-md-gen__blk">' + barra([{ t: 'Mujeres', n: g.F, c: 'var(--md-f)' }, { t: 'Hombres', n: g.M, c: 'var(--md-m)' }, { t: 'Mixtas', n: g.X, c: 'var(--md-x)' }].concat(g.U ? [{ t: 'Sin género en la prueba', n: g.U, c: 'var(--md-u)' }] : []), total, 'Medallas de Colombia') + '</div></section>' +
-      '<section class="nwtab-md-card" aria-labelledby="md-gen">' + '<div class="nwtab-md-gen__blk"><p class="nwtab-md-sub">Medallas por cada 100 inscripciones</p>' + convFilas(M.insG, g) + '</div></section>';
+      '<section class="nwtab-md-card" aria-labelledby="md-gen">' + '<div class="nwtab-md-gen__blk"><p class="nwtab-md-sub">Medallas por cada 100 participaciones</p>' + convFilas(M.insG, g) + '</div></section>';
     var rows = M.gRows, shown = rows, maxT = rows[0].t;
     var tg = '<div class="nwtab-tw"><table class="nwtab-tb nwtab-md-tb nwtab-md-tb--gen"><caption class="nwtab-sr">Medallas de Colombia por deporte y género</caption><thead><tr><th scope="col">Deporte</th><th scope="col" class="nwtab-md-hide-s">Medallas por género</th>' +
       '<th scope="col" class="nwtab-r">' + sx('F', 'Mujeres') + '</th><th scope="col" class="nwtab-r">' + sx('M', 'Hombres') + '</th><th scope="col" class="nwtab-r">' + sx('X', 'Mixtas') + '</th><th scope="col" class="nwtab-r">Total</th></tr></thead><tbody>';

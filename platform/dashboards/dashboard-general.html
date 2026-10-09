@@ -6616,7 +6616,10 @@ button:focus-visible,a:focus-visible,select:focus-visible,[tabindex="0"]:focus-v
 @media(max-width:1100px){ .kpi-grid,.kpi-grid--five { grid-template-columns:repeat(2,minmax(0,1fr)); }.layout,.execution-layout { grid-template-columns:minmax(0,1fr); }.prg-mini__row { grid-template-columns:minmax(0,1fr) auto 150px 110px; }.prg-mini__row> .naowee-badge { display:inline-flex; }.operation-controls { gap:10px; }.geo-row { grid-template-columns:140px minmax(0,1fr) 110px 95px; }.operation-program { width:240px; }.filter-hint { max-width:none; }.page-header__title-group { flex-basis:100%; }.reason-row { grid-template-columns:190px minmax(0,1fr) 24px; } }
 @media(max-width:760px){ .sidebar { width:72px;min-width:72px; }.sidebar .sb-logo-img,.sidebar .logo-sep,.sidebar .nav-section,.sidebar .lbl,.shell-note { display:none; }.sidebar-logo { justify-content:center;padding:0; }.nav-row .icon { margin-left:14px; }.page { padding:22px 18px 40px; }.top-header { height:72px;padding:0 16px; }.page-title { font-size:21px; }.filter-bar { padding:16px; }.filter-field .naowee-dropdown { width:150px; }.kpi-card { padding:18px 16px; }.kpi-card__val { font-size:25px; }.kpi-card__top .naowee-thumbnail { width:30px;min-width:30px;height:30px; }.kpi-card__lbl { font-size:10px; }.prg-mini__row { grid-template-columns:minmax(0,1fr) 90px; }.prg-mini__row>.naowee-badge { display:none; }.prg-mini__progress-wrap { grid-column:1; }.prg-mini__inv { grid-column:2;grid-row:1 / 3; }.geo-row { grid-template-columns:110px minmax(0,1fr) 80px;gap:10px; }.geo-row__count { grid-column:2; }.geo-row__value { grid-column:3;grid-row:1 / 3; }.eligible-row { grid-template-columns:120px minmax(0,1fr) 45px;gap:8px; }.naowee-segment { max-width:100%;overflow-x:auto; }.medals-table { min-width:530px; }.reason-row { grid-template-columns:145px minmax(0,1fr) 24px; }.activity-item { grid-template-columns:30px minmax(0,1fr); }.activity-item__value { grid-column:2; }.operation-controls .operation-program { width:100%; }.activity-panel .naowee-segment { max-width:100%; }.page-header__actions .naowee-btn { padding-left:20px;padding-right:20px; } }
 @media(prefers-reduced-motion:reduce){ *,*::before,*::after { animation:none!important;transition:none!important;scroll-behavior:auto!important; } }
-@media print { .shell { height:auto;overflow:visible; }.sidebar,.top-header,.page-header__actions,.operation-controls, display:none; }.main,.page { overflow:visible; }.page { padding:20px; }.naowee-card { break-inside:avoid; }.naowee-table-wrap { overflow:visible; } }
+@media print { .shell { height:auto;overflow:visible; }.sidebar,.top-header,.page-header__actions,.operation-controls { display:none; }.main,.page { overflow:visible; }.page { padding:20px; }.naowee-card { break-inside:avoid; }.naowee-table-wrap { overflow:visible; } }
+/* La regla de impresión estaba mal cerrada y dejaba .main/.page sin scroll fuera del modo embed. Se cierra bien y se conservan
+   los valores de pantalla que el diseño ya daba por buenos (DC-097: padding 20px; tablas sin recorte). */
+.page { padding:20px; }.naowee-card { break-inside:avoid; }.naowee-table-wrap { overflow:visible; }
 .top-inst__table .num { text-align:center!important; }
 .text-accent { color:var(--naowee-color-text-accent); }
 
@@ -7013,8 +7016,16 @@ body,.shell,.main,.page{background:var(--naotech-app-color-050)}
 .scatter .pt-lbl--team{fill:#6B6B85}
 .scatter .quad-n{font-size:15px;font-weight:700;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
 .scatter .quad-s{font-size:12px;fill:var(--naotech-app-color-700);paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
-.scatter .avg{stroke:#7f77dd;stroke-width:1.5;stroke-dasharray:5 4}
-.scatter .avg-t{font-size:12px;fill:#5b52c4;font-weight:600}
+.scatter .grid{stroke:#e7e9f3;stroke-width:1;opacity:.6}
+.scatter .grid--zero{stroke:#b9bdd3;opacity:1}
+.scatter .avg{stroke:#282834;stroke-width:1.75;stroke-dasharray:7 4}
+.sc-tbl{padding-top:24px;overflow-x:auto}
+.sc-tbl .nw-table{width:100%}
+.sc-tbl th,.sc-tbl td{white-space:nowrap}
+.sc-tbl .r{text-align:right;font-variant-numeric:tabular-nums}
+.sc-tbl .sc-tbl__team{margin-left:6px;font-size:12px;color:#6B6B85}
+.co-qleg__ln{display:inline-block;width:18px;height:0!important;border-top:2px dashed #282834;border-radius:0!important;background:none!important;vertical-align:middle}
+.scatter .avg-t{font-size:12px;fill:#282834;font-weight:700;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
 .scatter .pt{stroke:#fff;stroke-width:2}
 .scatter .pt--team{fill:#fff;stroke:#6B6B85;stroke-width:2.5}
 .verdicts .verdict h4{gap:8px}
@@ -7050,6 +7061,14 @@ body,.shell,.main,.page{background:var(--naotech-app-color-050)}
 .co-seg button:hover{background:#fafbff}
 .co-seg button[aria-pressed=true]{background:#fff3e6;color:#d74009;font-weight:800}
 .co-seg button:focus-visible{outline:2px solid #d74009;outline-offset:-2px}
+/* Vista por tipo de medalla del mapa de calor + desglose en el tooltip */
+.co-seg button .co-mdot{margin-right:6px}
+.co-mdot{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
+.co-mdot--T{background:var(--c-main)}.co-mdot--G{background:#b07d0e}.co-mdot--S{background:#7a8199}.co-mdot--B{background:#9a5428}
+#chart-tooltip .tip-sec{display:block;margin:8px 0 2px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.65}
+#chart-tooltip .tip-row .co-mdot{margin-right:7px;vertical-align:0}
+#chart-tooltip .tip-row.is-on{color:#ffd29a}
+#chart-tooltip .tip-row.is-tot{border-top:1px solid rgba(255,255,255,.18);margin-top:3px;padding-top:3px}
 @media(max-width:760px){.co-st__x:has(.co-seg){width:100%}.co-seg{display:flex;width:100%}.co-seg button{flex:1 1 0;min-width:0;padding:0 2px;font-size:12px;justify-content:center;white-space:nowrap}.edition__name strong{font-size:12px}}
 /* DC-079: deltas como chip con color (sube verde, baja rojo, igual gris) */
 .edition__m{display:flex;flex-wrap:wrap;align-items:center;gap:3px 8px}
@@ -7324,25 +7343,24 @@ html.is-embed .main, html.is-embed .page { overflow: visible; }
 
 <section class="co-panel" id="p-eventos" role="tabpanel" aria-labelledby="t-eventos" hidden><div class="co-sec"><div class="co-st"><h3 class="co-st__t">Evolución del desempeño por evento</h3><div class="co-st__x"><div class="co-seg" role="group" aria-label="Medida"><button type="button" data-metric="share" aria-pressed="false">% de medallas</button><button type="button" data-metric="rank" aria-pressed="false">Puesto</button><button type="button" data-metric="medals" aria-pressed="false">Medallas</button><button type="button" data-metric="ath" aria-pressed="false">Deportistas</button></div></div><details class="co-info" data-info="evo"><summary aria-label="Qué mide esta card"></summary><div class="co-info__p"></div></details></div><article class="co-card"><div id="evCharts"></div><div id="editions"></div></article></div><div class="co-sec"><div class="co-st"><h3 class="co-st__t">Detalle por evento</h3><div class="co-st__x"><div class="legend-row"><span><i style="background:var(--medal-gold)"></i>Oro</span><span><i style="background:var(--medal-silver)"></i>Plata</span><span><i style="background:var(--medal-bronze)"></i>Bronce</span></div></div><details class="co-info" data-info="evDetail"><summary aria-label="Qué mide esta card"></summary><div class="co-info__p"></div></details></div><article class="co-card"><div id="evDetail"></div></article></div></section>
 
-<section class="co-panel" id="p-deportes" role="tabpanel" aria-labelledby="t-deportes" hidden><div class="co-sec"><div class="co-st"><h3 class="co-st__t">Medallas por deporte en cada evento</h3><div class="co-st__x"><div class="co-seg" role="group" aria-label="Ordenar por"><button type="button" data-sort="const" aria-pressed="false">Constancia</button><button type="button" data-sort="med" aria-pressed="false">Medallas</button></div></div><details class="co-info" data-info="heat"><summary aria-label="Qué mide esta card"></summary><div class="co-info__p"></div></details></div><article class="co-card"><div class="heat-wrap"><table class="heat" id="heat"></table></div>
+<section class="co-panel" id="p-deportes" role="tabpanel" aria-labelledby="t-deportes" hidden><div class="co-sec"><div class="co-st"><h3 class="co-st__t">Medallas por deporte en cada evento</h3><div class="co-st__x"><div class="co-seg co-seg--medal" role="group" aria-label="Medallas a mostrar"><button type="button" data-medal="T" aria-pressed="true">Total</button><button type="button" data-medal="G" aria-pressed="false"><i class="co-mdot co-mdot--G" aria-hidden="true"></i>Oro</button><button type="button" data-medal="S" aria-pressed="false"><i class="co-mdot co-mdot--S" aria-hidden="true"></i>Plata</button><button type="button" data-medal="B" aria-pressed="false"><i class="co-mdot co-mdot--B" aria-hidden="true"></i>Bronce</button></div></div><details class="co-info" data-info="heat"><summary aria-label="Qué mide esta card"></summary><div class="co-info__p"></div></details></div><article class="co-card"><div class="heat-wrap"><table class="heat" id="heat"></table></div>
           <div class="heat-legend">
-            <span><i class="ramp"></i>Menos → más peso en el evento</span>
-            <span><i style="background:var(--naowee-color-background-secondary)"></i>0 medallas</span>
+            <span><i class="ramp" id="heatRamp"></i>Menos → más peso en el evento</span>
+            <span><i style="background:var(--naowee-color-background-secondary)"></i><span id="heatZero">0 medallas</span></span>
             <span><i style="border:1px dashed var(--naowee-color-border-primary)"></i>– Sin deportistas de Colombia</span>
             <span><i style="background:var(--hatch)"></i>– No se disputó</span>
           </div></article></div></section>
 
-<section class="co-panel" id="p-potencial" role="tabpanel" aria-labelledby="t-potencial" hidden><div class="co-sec"><div class="co-st"><div class="co-st__t"><h3>¿Dónde invertir?</h3><p class="co-st__s">Cuántos deportistas enviamos a cada deporte y qué porcentaje de ellos ganó medalla.</p></div><div class="co-st__x"><div class="sc-ctl" id="scCtl" role="group" aria-label="Zoom de la gráfica" hidden>
+<section class="co-panel" id="p-potencial" role="tabpanel" aria-labelledby="t-potencial" hidden><div class="co-sec"><div class="co-st"><div class="co-st__t"><h3>Deportistas y medallas por deporte</h3><p class="co-st__s">Cuántos deportistas enviamos a cada deporte y qué porcentaje de ellos ganó medalla.</p></div><div class="co-st__x"><div class="sc-ctl" id="scCtl" role="group" aria-label="Zoom de la gráfica" hidden>
                   <button type="button" id="scIn" aria-label="Acercar">+</button><button type="button" id="scOut" aria-label="Alejar">−</button><button type="button" id="scReset" class="sc-ctl__reset" aria-label="Restablecer zoom">Restablecer</button>
                 </div></div><details class="co-info" data-info="scatter"><summary aria-label="Qué mide esta card"></summary><div class="co-info__p"></div></details></div><div class="scatter-layout"><div class="scatter-card">
             <div class="scatter">
               <div class="scatter-stage">
                 <div class="scatter-plot" id="scatterPlot" tabindex="0" role="group" aria-label="Gráfica de dispersión. Más y menos acercan, 0 restablece, las flechas mueven la vista"></div>
                 <div class="scatter-hint" id="scHint" hidden>Ctrl + rueda para hacer zoom</div>
-                <div class="quad-tip" id="quadTip" role="tooltip" hidden></div>
-              </div>
+                              </div>
             </div>
-          <div class="co-qrow"><div class="legend-row co-qleg"><span><i style="background:#3B6D11;border-radius:50%"></i>Potenciar</span><span><i style="background:#185FA5;border-radius:50%"></i>Sostener</span><span><i style="background:#C84B22;border-radius:50%"></i>Optimizar</span><span><i style="background:#6B6B85;border-radius:50%"></i>Evaluar</span><span><i style="border:2px solid #6B6B85;border-radius:50%;background:#fff;box-sizing:border-box"></i>Deporte de conjunto</span></div><p class="scatter-help">Las líneas marcan el promedio de los deportes individuales. En deportes de conjunto una medalla cuenta para todo el equipo, por eso no entran en la clasificación.</p></div></div><div class="vd"><div class="co-seg" role="tablist" aria-label="Deportes por cuadrante" id="vdTabs"><button type="button" role="tab" id="vdT-up" data-vd="up" aria-selected="true" aria-controls="verdicts" tabindex="0">Por encima del promedio<em id="vdN-up"></em></button><button type="button" role="tab" id="vdT-dn" data-vd="dn" aria-selected="false" aria-controls="verdicts" tabindex="-1">Por debajo del promedio<em id="vdN-dn"></em></button></div><div class="verdicts" id="verdicts" role="tabpanel" aria-labelledby="vdT-up" tabindex="0"></div></div></div></div><div class="co-sec"><div class="co-st"><div class="co-st__t"><h3>Cerca del podio</h3><p class="co-st__s">¿En qué deportes llegamos a la final y se nos escapa la medalla?</p></div><details class="co-info" data-info="podio"><summary aria-label="Qué mide esta card"></summary><div class="co-info__p"></div></details></div><div id="potential"></div></div></section>
+          <div class="co-qrow"><div class="legend-row co-qleg"><span><i style="background:var(--c-main);border-radius:50%"></i>Deporte individual</span><span><i style="border:2px solid #6B6B85;border-radius:50%;background:#fff;box-sizing:border-box"></i>Deporte de conjunto</span><span><i class="co-qleg__ln"></i>Mediana</span></div><p class="scatter-help">Las líneas punteadas marcan la mediana de los deportes individuales: a cada lado de la línea queda la mitad de los deportes. Las líneas grises claras son solo la escala. En los deportes de conjunto una medalla cuenta para todo el equipo, por eso no entran en el cálculo de la mediana.</p></div></div><div class="sc-tbl" id="scTable"></div></div></div><div class="co-sec"><div class="co-st"><div class="co-st__t"><h3>Cerca del podio</h3><p class="co-st__s">¿En qué deportes llegamos a la final y se nos escapa la medalla?</p></div><details class="co-info" data-info="podio"><summary aria-label="Qué mide esta card"></summary><div class="co-info__p"></div></details></div><div id="potential"></div></div></section>
 
 <section class="co-panel" id="p-genero" role="tabpanel" aria-labelledby="t-genero" hidden><div class="co-sec"><div class="co-st"><div class="co-st__t"><h3>Mujeres: peso en el equipo y en las medallas</h3></div><details class="co-info" data-info="gender"><summary aria-label="Qué mide esta card"></summary><div class="co-info__p"></div></details></div><article class="co-card"><div class="wb" id="gender"></div></article></div></section>
 
@@ -7542,7 +7560,7 @@ const ROLES = {admin:{user:'Laura Méndez', label:'Administradora de eventos'}, 
 const YEARS = [...new Set(EVENTS.map(e => e.year))].sort();
 // DC-087: el dashboard queda fijo en la vista del Comité Olímpico (solo ciclo olímpico)
 const state = {role:'comite', years:new Set(YEARS), selected:new Set(EVENTS.filter(e => e.cycle).map(e => e.code)), query:'', data:'events'};
-state.tab = 'resumen'; state.metric = 'share'; state.sort = 'const'; let LAST_A = null;
+state.tab = 'resumen'; state.metric = 'share'; state.sort = 'const'; state.medal = 'T'; let LAST_A = null;
 const visibleEvents = () => EVENTS.filter(e => state.role === 'admin' || e.cycle);
 const rangeEvents = () => visibleEvents().filter(e => state.years.has(e.year));
 const selection = () => rangeEvents().filter(e => state.selected.has(e.code));
@@ -7704,66 +7722,59 @@ function sportStats(A){
   return rows;
 }
 function renderSports(A){
-  const rows = sportStats(A).sort((a, b) => state.sort === 'med' ? b.medals - a.medals || b.won - a.won : (b.played ? b.won / b.played : -1) - (a.played ? a.won / a.played : -1) || b.medals - a.medals);
+  // Vista por tipo de medalla: Total, Oro, Plata o Bronce. Cambia valores, color, orden y constancia del mapa de calor.
+  const MT = {T:{k:'medals', lbl:'medallas', col:'var(--c-main)'}, G:{k:'g', lbl:'oros', col:'#b07d0e'},
+    S:{k:'s', lbl:'platas', col:'#7a8199'}, B:{k:'b', lbl:'bronces', col:'#9a5428'}};
+  const mk = MT[state.medal] ? state.medal : 'T', mt = MT[mk];
+  const evOf = c => A.perEvent.find(x => x.e.code === c.e.code), evTot = c => { const x = evOf(c); return mk === 'T' ? x.total : x[mt.k]; };
+  const val = c => c.state === 'won' || c.state === 'zero' ? (c[mt.k] || 0) : null;
+  const rows = sportStats(A).map(r => { const pl = r.cells.filter(c => val(c) !== null); r.wonT = pl.filter(c => val(c) > 0).length; r.medT = sum(pl, val); return r; })
+    .sort((a, b) => (b.played ? b.wonT / b.played : -1) - (a.played ? a.wonT / a.played : -1) || b.medT - a.medT);
+  document.querySelectorAll('[data-medal]').forEach(b => b.setAttribute('aria-pressed', b.dataset.medal === mk));
+  if($('heatRamp')) $('heatRamp').style.background = `linear-gradient(90deg,color-mix(in srgb,${mt.col} 10%,#fff),${mt.col})`;
+  if($('heatZero')) $('heatZero').textContent = '0 ' + mt.lbl;
   document.querySelectorAll('[data-sort]').forEach(b => b.setAttribute('aria-pressed', b.dataset.sort === state.sort));
-  if(!A.sel.length){ $('heat').innerHTML = '<tr><td class="empty-block">Elige al menos un evento.</td></tr>'; SC = null; $('scCtl').hidden = true; $('scatterPlot').innerHTML = '<div class="empty-block">Elige al menos un evento.</div>'; $('verdicts').innerHTML = ''; return; }
-  const maxShare = Math.max(.01, ...rows.flatMap(r => r.cells.filter(c => c.state === 'won').map(c => c.share)));
+  if(!A.sel.length){ $('heat').innerHTML = '<tr><td class="empty-block">Elige al menos un evento.</td></tr>'; SC = null; $('scCtl').hidden = true; $('scatterPlot').innerHTML = '<div class="empty-block">Elige al menos un evento.</div>'; $('scTable').innerHTML = ''; return; }
+  const shareT = c => { const v = val(c), tt = evTot(c); return v && tt ? v / tt : 0; };
+  const maxShare = Math.max(.01, ...rows.flatMap(r => r.cells.filter(c => val(c) > 0).map(shareT)));
   $('heat').innerHTML = `<thead><tr><th>Deporte</th>${A.perEvent.map(x => `<th><strong>${esc(x.e.short)}</strong>${x.e.year}</th>`).join('')}<th style="text-align:left;padding-left:10px">Constancia</th></tr></thead><tbody>` +
     rows.map(r => `<tr><td class="sport">${esc(r.s.name)}</td>${r.cells.map(c => {
       if(c.state === 'na') return `<td class="na" ${tip(`<span class="tip-title">${esc(r.s.name)} · ${esc(c.e.label)}</span>No se disputó en este evento.`)}>–<span class="co-sr">No se disputó</span></td>`;
       if(c.state === 'abs') return `<td class="abs" ${tip(`<span class="tip-title">${esc(r.s.name)} · ${esc(c.e.label)}</span>Se disputó, pero Colombia no inscribió deportistas.`)}>–<span class="co-sr">Sin deportistas</span></td>`;
-      const t = `<span class="tip-title">${esc(r.s.name)} · ${esc(c.e.label)}</span>` + tipRows([['Medallas', `${nf(c.medals)} (${nf(c.g)} · ${nf(c.s)} · ${nf(c.b)})`], ['Peso en las medallas de Colombia', pct(c.medals, c.medals / c.share, 1) + ' %'], ['Deportistas', nf(c.athletes)], ['Con medalla', `${nf(c.medalists)} · ${pct(c.medalists, c.athletes)} %`]]);
-      if(c.state === 'zero') return `<td class="zero" ${tip(t)}>0</td>`;
-      const mix = Math.round(12 + c.share / maxShare * 88);
-      return `<td class="${mix > 55 ? 'is-dark' : ''}" style="background:color-mix(in srgb,var(--c-main) ${mix}%,#fff)" ${tip(t)}>${nf(c.medals)}</td>`;
-    }).join('')}<td class="const"><b>${r.won} de ${r.played}</b> ${r.played >= 2 && r.won / r.played > .5 ? badge('positive', 'Constante') : r.played >= 2 && !r.won ? badge('negative', 'Sin medalla') : r.played >= 2 ? badge('neutral', 'Irregular') : ''}</td></tr>`).join('') + '</tbody>';
+      const v = val(c), tt = evTot(c);
+      const mrow = (k, label, n) => `<span class="tip-row${k === mk ? ' is-on' : ''}${k === 'T' ? ' is-tot' : ''}"><span>${k === 'T' ? '' : `<i class="co-mdot co-mdot--${k}"></i>`}${label}</span><b>${nf(n)}</b></span>`;
+      const t = `<span class="tip-title">${esc(r.s.name)} · ${esc(c.e.label)}</span>` +
+        `<span class="tip-sec">Medallas de Colombia en ${esc(r.s.name)}</span>` + mrow('G', 'Oro', c.g || 0) + mrow('S', 'Plata', c.s || 0) + mrow('B', 'Bronce', c.b || 0) + mrow('T', 'Total', c.medals || 0) +
+        `<span class="tip-sec">Peso en el evento</span>` + tipRows([[`${mt.lbl.charAt(0).toUpperCase() + mt.lbl.slice(1)} de Colombia en el evento`, nf(tt)], [`Aporte de ${esc(r.s.name)}`, tt ? `${nf(v)} · ${pct(v, tt, 1)} %` : '—']]) +
+        `<span class="tip-sec">Deportistas</span>` + tipRows([['Compitieron', nf(c.athletes)], ['Ganaron medalla', `${nf(c.medalists)} · ${pct(c.medalists, c.athletes)} %`]]) +
+        (c.state === 'zero' ? '<span class="tip-note">Colombia compitió en este deporte y no ganó medalla.</span>' : !v ? `<span class="tip-note">Sin ${mt.lbl} en este deporte en este evento.</span>` : '');
+      if(!v) return `<td class="zero" ${tip(t)}>0</td>`;
+      const mix = Math.round(12 + shareT(c) / maxShare * 88);
+      return `<td class="${mix > 55 ? 'is-dark' : ''}" style="background:color-mix(in srgb,${mt.col} ${mix}%,#fff)" ${tip(t)}>${nf(v)}</td>`;
+    }).join('')}<td class="const"><b>${r.wonT} de ${r.played}</b> ${r.played >= 2 && r.wonT / r.played > .5 ? badge('positive', 'Constante') : r.played >= 2 && !r.wonT ? badge('negative', 'Sin medalla') : r.played >= 2 ? badge('neutral', 'Irregular') : ''}</td></tr>`).join('') + '</tbody>';
 
   // Dispersión: x = participaciones (suma por evento), y = % de esas participaciones con medalla
-  // Los conjuntos se dibujan huecos y no entran en las medianas: si ganan, todo el equipo cuenta como medallista.
+  // Los conjuntos se dibujan huecos y no entran en la mediana: si ganan, todo el equipo cuenta como medallista.
   const pts = rows.filter(r => r.athletes > 0).map(r => ({name:r.s.name, team:!!r.s.team, x:r.athletes, y:r.medalists / r.athletes * 100, medals:r.medals, medalists:r.medalists}));
   const ind = pts.filter(p => !p.team);
-  const mean = a => a.length ? a.reduce((t, v) => t + v, 0) / a.length : 0;
-  const mx = mean(ind.map(p => p.x)), my = mean(ind.map(p => p.y));
+  // Las líneas parten los deportes individuales en dos mitades: mediana, no promedio (un deporte con muchos deportistas no la arrastra).
+  const mx = median(ind.map(p => p.x)), my = median(ind.map(p => p.y));
   // El tooltip de cada punto se registra una sola vez: el gráfico se re-pinta en cada zoom o arrastre.
-  pts.forEach(p => { TIPS.push(`<span class="tip-title">${esc(p.name)}${p.team ? ' (conjunto)' : ''}</span>` + tipRows([['Deportistas (participaciones)', nf(p.x)], ['Con medalla', `${nf(p.medalists)} · ${nf(p.y, 0)} %`], ['Medallas', nf(p.medals)]]) + (p.team ? '<span class="tip-note">Conjunto: no entra en las medianas ni en los cuadrantes.</span>' : '')); p.tip = TIPS.length - 1; });
-  const full = {x0:0, x1:Math.max(10, ...pts.map(p => p.x)) * 1.08, y0:-14, y1:Math.min(112, Math.max(10, ...pts.map(p => p.y)) * 1.12 + 10)};
+  pts.forEach(p => { TIPS.push(`<span class="tip-title">${esc(p.name)}${p.team ? ' (conjunto)' : ''}</span>` + tipRows([['Deportistas (participaciones)', nf(p.x)], ['Con medalla', `${nf(p.medalists)} · ${nf(p.y, 0)} %`], ['Medallas', nf(p.medals)]]) + (p.team ? '<span class="tip-note">Conjunto: no entra en el cálculo de la mediana.</span>' : '')); p.tip = TIPS.length - 1; });
+  const full = {x0:0, x1:Math.max(10, ...pts.map(p => p.x)) * 1.08, y0:0, y1:Math.min(112, Math.max(10, ...pts.map(p => p.y)) * 1.12 + 10)};
   SC = {pts, mx, my, full, view:{...full}};
   drawScatter();
-  const li = p => `<li>${esc(p.name)}<span>${nf(p.x)} dep. · ${nf(p.y, 0)} % (${nf(p.medalists)})</span></li>`;
-  ind.forEach(p => { p.q = quadOf(p.x, p.y, mx, my); });
-  const card = k => {
-    const l = ind.filter(p => p.q === k).sort((a, b) => b.y - a.y || b.x - a.x);
-    return {n:l.length, html:`<div class="verdict"><h4><i class="co-q" style="background:${QUAD[k].c}" aria-hidden="true"></i>${QUAD[k].name}</h4><p>${QUAD[k].txt}</p>${l.length ? `<ul>${l.map(li).join('')}</ul>` : '<p>Ningún deporte en este cuadrante.</p>'}</div>`};
-  };
-  const up = ['pot', 'sos'].map(card), dn = ['opt', 'eva'].map(card);
-  VD.html = {up:up.map(c => c.html).join(''), dn:dn.map(c => c.html).join('')};
-  $('vdN-up').textContent = sum(up, c => c.n); $('vdN-dn').textContent = sum(dn, c => c.n);
-  showVerdicts(VD.mode);
+  // Tabla de datos: describe cada deporte, sin clasificarlo ni recomendar nada.
+  const rowsT = pts.slice().sort((a, b) => b.y - a.y || b.x - a.x || a.name.localeCompare(b.name, 'es'));
+  $('scTable').innerHTML = `<table class="nw-table"><caption class="co-sr">Deportistas enviados y porcentaje con medalla por deporte</caption><thead><tr><th scope="col">Deporte</th><th scope="col" class="r">Deportistas (participaciones)</th><th scope="col" class="r">Con medalla</th><th scope="col" class="r">% con medalla</th><th scope="col" class="r">Medallas</th></tr></thead><tbody>` +
+    rowsT.map(p => `<tr><th scope="row">${esc(p.name)}${p.team ? '<span class="sc-tbl__team">conjunto</span>' : ''}</th><td class="r">${nf(p.x)}</td><td class="r">${nf(p.medalists)}</td><td class="r">${nf(p.y, 0)} %</td><td class="r">${nf(p.medals)}</td></tr>`).join('') + '</tbody></table>';
 }
 
-// Veredictos: encima del promedio = Potenciar + Sostener; debajo = Optimizar + Evaluar
-const VD = {mode:'up', html:{up:'', dn:''}};
-function showVerdicts(m, focus){
-  VD.mode = m; $('verdicts').innerHTML = VD.html[m]; $('verdicts').setAttribute('aria-labelledby', 'vdT-' + m);
-  document.querySelectorAll('#vdTabs [role=tab]').forEach(b => { const on = b.dataset.vd === m; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; if(on && focus) b.focus(); });
-}
-$('vdTabs').addEventListener('click', e => { const b = e.target.closest('[role=tab]'); if(b) showVerdicts(b.dataset.vd); });
-$('vdTabs').addEventListener('keydown', e => {
-  const k = {ArrowLeft:'up', ArrowUp:'up', Home:'up', ArrowRight:'dn', ArrowDown:'dn', End:'dn'}[e.key];
-  if(k){ e.preventDefault(); showVerdicts(k, true); }
-});
 
 /* ═══ Dispersión: cuadrantes con nombre, etiquetas visibles y zoom/paneo tipo mapa (DC-106) ═══ */
 let SC = null, scDragging = false, scFrame = 0;
 function niceStep(span, n){ const raw = span / n, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * p; }
 function niceTicks(a, b, n){ const st = niceStep(b - a, n), out = []; for(let v = Math.ceil(a / st - 1e-9) * st; v <= b + 1e-9; v += st) out.push(+v.toFixed(6)); return {st, out}; }
-const QUAD = {
-  pot:{name:'Potenciar', c:'#3B6D11', txt:'Rinden muy bien con poca delegación: enviar más.'},
-  sos:{name:'Sostener', c:'#185FA5', txt:'Base grande y efectiva: proteger lo que funciona.'},
-  opt:{name:'Optimizar', c:'#C84B22', txt:'Mucha inversión, rendimiento bajo el promedio.'},
-  eva:{name:'Evaluar', c:'#6B6B85', txt:'Poca presencia y poco resultado: decidir si crecer.'}
-};
-const quadOf = (x, y, mx, my) => x < mx ? (y >= my ? 'pot' : 'eva') : (y >= my ? 'sos' : 'opt');
 function drawScatter(){
   scFrame = 0; if(window.quadTipHide) quadTipHide();
   const el = $('scatterPlot'); if(!el || !SC) return;
@@ -7775,17 +7786,7 @@ function drawScatter(){
   const tx = niceTicks(x0, x1, Math.max(3, Math.round(pw / 85))), ty = niceTicks(y0, y1, 5);
   const fx = v => nf(v, tx.st < 1 ? 1 : 0), fy = v => nf(v, ty.st < 1 ? 1 : 0) + ' %';
   const frases = pw >= 560, cx0 = sx(mx), cy0 = sy(my);
-  // Cuadrantes (DC-119): recuadro blanco con nombre + ⓘ; la frase sale en tooltip. Sus cajas son obstáculos de las etiquetas
-  const corners = [['pot', 0, 0], ['sos', 1, 0], ['opt', 1, 1], ['eva', 0, 1]];
   const boxes = [];
-  const quads = corners.map(([k, right, bottom]) => {
-    const q = QUAD[k], bw = 8 + Math.ceil(q.name.length * (pw < 300 ? 7.4 : 8.6)) + 6 + 14 + 6, bh = pw < 300 ? 26 : 30;
-    const bx = right ? W - R - 10 - bw : L + 10, by = bottom ? T + ph - 10 - bh : T + 10;
-    boxes.push({x1:bx - 2, x2:bx + bw + 2, y1:by - 2, y2:by + bh + 2});
-    const ix = bx + bw - 6 - 7, iy = by + bh / 2;
-    return `<g class="quad-b" transform="translate(${bx} ${by})"><rect width="${bw}" height="${bh}" rx="6" fill="${q.c}" stroke="${q.c}"/><text class="quad-n${pw < 300 ? ' quad-n--s' : ''}" x="8" y="${bh / 2 + 5}" fill="#fff">${q.name}</text>` +
-      `<g class="quad-i" data-q="${k}" tabindex="0" role="button" aria-label="Qué significa ${q.name}" aria-describedby="quadTip" transform="translate(${ix - bx} ${iy - by})"><circle r="11" fill="transparent"/><circle r="7" fill="none" stroke="#fff" stroke-width="1.5"/><rect x="-1" y="-1" width="2" height="5" rx="1" fill="#fff"/><circle cy="-3.4" r="1.15" fill="#fff"/></g></g>`;
-  }).join('');
   const vis = SC.pts.filter(p => p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1);
   vis.forEach(p => boxes.push({x1:sx(p.x) - 8, x2:sx(p.x) + 8, y1:sy(p.y) - 8, y2:sy(p.y) + 8}));
   const lineBoxes = [{x1:cx0 - 2, x2:cx0 + 2, y1:T, y2:T + ph}, {x1:L, x2:W - R, y1:cy0 - 2, y2:cy0 + 2}];
@@ -7804,17 +7805,17 @@ function drawScatter(){
     return lead + `<text class="pt-lbl${p.team ? ' pt-lbl--team' : ''}" x="${pick[0].toFixed(1)}" y="${pick[1].toFixed(1)}" text-anchor="${pick[2]}">${esc(name)}</text>`;
   }).join('');
   const vx = Math.min(W - R - 70, Math.max(L + 70, cx0));
-  el.innerHTML = `<svg width="${W}" height="${Hh}" viewBox="0 0 ${W} ${Hh}" role="group" aria-label="Deportes según deportistas enviados y porcentaje con medalla, en cuatro cuadrantes: Potenciar, Sostener, Optimizar y Evaluar">
-    <defs><clipPath id="scClip"><rect x="${L}" y="${T}" width="${pw}" height="${ph}"/></clipPath></defs>
-    ${ty.out.map(v => `<line class="axis" x1="${L}" x2="${W - R}" y1="${sy(v)}" y2="${sy(v)}" style="stroke:var(--naowee-color-border-default)"/><text class="tick" x="${L - 6}" y="${sy(v) + 3}" text-anchor="end">${fy(v)}</text>`).join('')}
+  el.innerHTML = `<svg width="${W}" height="${Hh}" viewBox="0 0 ${W} ${Hh}" role="group" aria-label="Deportes según deportistas enviados y porcentaje con medalla, con líneas en la mediana de deportistas y de porcentaje con medalla">
+    <defs><clipPath id="scClip"><rect x="${L - 8}" y="${T - 8}" width="${pw + 16}" height="${ph + 16}"/></clipPath></defs>
+    ${ty.out.map(v => `<line class="grid" x1="${L}" x2="${W - R}" y1="${sy(v)}" y2="${sy(v)}"/><text class="tick" x="${L - 6}" y="${sy(v) + 3}" text-anchor="end">${fy(v)}</text>`).join('')}
     ${tx.out.map(v => `<line class="axis" x1="${sx(v)}" x2="${sx(v)}" y1="${T + ph}" y2="${T + ph + 4}"/><text class="tick" x="${sx(v)}" y="${T + ph + 16}" text-anchor="middle">${fx(v)}</text>`).join('')}
     <line class="axis" x1="${L}" x2="${W - R}" y1="${T + ph}" y2="${T + ph}"/>
+    ${y0 < 0 && y1 > 0 ? `<line class="grid grid--zero" x1="${L}" x2="${W - R}" y1="${sy(0)}" y2="${sy(0)}"/>` : ''}
     <line class="avg" x1="${cx0}" x2="${cx0}" y1="${T}" y2="${T + ph}"/><line class="avg" x1="${L}" x2="${W - R}" y1="${cy0}" y2="${cy0}"/>
-    <text class="avg-t" x="${vx}" y="${T - 10}" text-anchor="middle">Promedio: ${nf(mx, 0)} deportistas</text>
-    <text class="avg-t" x="${W - R - 4}" y="${cy0 - 7}" text-anchor="end">Promedio: ${nf(my, 0)} %</text>
+    <text class="avg-t" x="${vx}" y="${T - 10}" text-anchor="middle">Mediana: ${nf(mx, 0)} deportistas</text>
+    <text class="avg-t" x="${W - R - 4}" y="${cy0 - 7}" text-anchor="end">Mediana: ${nf(my, 0)} %</text>
     <g clip-path="url(#scClip)">
-      ${quads}
-      ${vis.map(p => `<circle class="pt${p.team ? ' pt--team' : ''}" cx="${sx(p.x).toFixed(1)}" cy="${sy(p.y).toFixed(1)}" r="${p.team ? 7 : 6.5}" ${p.team ? '' : `style="fill:${QUAD[quadOf(p.x, p.y, mx, my)].c}"`} data-tip="${p.tip}"/>`).join('')}
+      ${vis.map(p => `<circle class="pt${p.team ? ' pt--team' : ''}" cx="${sx(p.x).toFixed(1)}" cy="${sy(p.y).toFixed(1)}" r="${p.team ? 7 : 6.5}" data-tip="${p.tip}"/>`).join('')}
       ${labels}
     </g>
     <text class="axis-title" x="${L + pw / 2}" y="${Hh - 18}" text-anchor="middle">Deportistas enviados (participaciones) →</text>
@@ -7867,26 +7868,7 @@ const scSchedule = () => { if(!scFrame) scFrame = requestAnimationFrame(drawScat
   });
   const end = e => { ptrs.delete(e.pointerId); last = null; if(ptrs.size < 2 && ptrs.size === 0 || e.type === 'pointercancel'){ scDragging = false; el.classList.remove('is-dragging'); } };
   ['pointerup', 'pointercancel'].forEach(t => el.addEventListener(t, end));
-  // Tooltip de cuadrante: hover, foco o clic en el ⓘ; Esc cierra
-  const qt = $('quadTip'), stage = el.parentElement; let qPin = null;
-  window.quadTipHide = () => { qt.hidden = true; qPin = null; };
-  function qShow(i){
-    const q = QUAD[i.dataset.q]; qt.innerHTML = `<b>${q.name}</b>${esc(q.txt)}`; qt.hidden = false;
-    const r = i.getBoundingClientRect(), s = stage.getBoundingClientRect(), w = qt.offsetWidth, h = qt.offsetHeight;
-    const l = Math.min(s.width - w - 4, Math.max(4, r.left - s.left + r.width / 2 - w / 2)), below = r.top - s.top < s.height / 2;
-    qt.style.left = l + 'px'; qt.style.top = (below ? r.bottom - s.top + 6 : r.top - s.top - h - 6) + 'px';
-  }
-  const qi = e => e.target.closest && e.target.closest('.quad-i');
-  stage.addEventListener('mouseover', e => { const i = qi(e); if(i && !qPin) qShow(i); });
-  stage.addEventListener('mouseout', e => { if(qi(e) && !qPin) qt.hidden = true; });
-  stage.addEventListener('focusin', e => { const i = qi(e); if(i) qShow(i); });
-  stage.addEventListener('focusout', e => { if(qi(e) && !qPin) qt.hidden = true; });
-  stage.addEventListener('click', e => { const i = qi(e); if(!i) return; if(qPin === i.dataset.q){ quadTipHide(); } else { qPin = i.dataset.q; qShow(i); } });
-  document.addEventListener('click', e => { if(!qi(e) && qPin) quadTipHide(); });
-  stage.addEventListener('keydown', e => {
-    const i = qi(e); if(i && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); i.dispatchEvent(new MouseEvent('click', {bubbles:true})); }
-    if(e.key === 'Escape' && !qt.hidden){ quadTipHide(); }
-  });
+  window.quadTipHide = () => {};
   el.addEventListener('keydown', e => {
     if(e.target !== el || !SC) return; const s = 40, m = {'+':() => zoomTo(1.6), '=':() => zoomTo(1.6), '-':() => zoomTo(1 / 1.6), '0':() => { SC.view = {...SC.full}; scSchedule(); },
       ArrowLeft:() => panBy(s, 0), ArrowRight:() => panBy(-s, 0), ArrowUp:() => panBy(0, s), ArrowDown:() => panBy(0, -s)}[e.key];
@@ -8006,8 +7988,8 @@ const INFO = {
   sumSports:'Deportes con medalla en más eventos. «Constante»: con medalla en más de la mitad de los eventos en que Colombia compitió (mín. 2).',
   evo:'Cambia la medida con el selector. % de medallas: Colombia ÷ medallas entregadas. Puesto: orden por oros, platas y bronces (más alto es mejor). Cupos usados no se muestra: aún no hay cupos registrados.',
   evDetail:'Las medallas absolutas dependen del tamaño del evento: léelas junto al % de medallas.',
-  heat:'Más oscuro = más peso de las medallas del deporte en el evento. «Constante»: con medalla en más de la mitad de los eventos en que Colombia compitió (mín. 2).',
-  scatter:'Cada punto es un deporte, sumando los eventos elegidos. Las líneas punteadas son el promedio de deportistas y de % con medalla de los deportes individuales; los de conjunto no entran en la clasificación ni en los promedios.',
+  heat:'Total, Oro, Plata o Bronce cambian qué medallas se cuentan. Más oscuro = más peso del deporte en esas medallas de Colombia en el evento. «Constante»: con medalla en más de la mitad de los eventos en que Colombia compitió (mín. 2).',
+  scatter:'Cada punto es un deporte, sumando los eventos elegidos. Las líneas punteadas son la mediana de deportistas y de % con medalla de los deportes individuales: la mitad de los deportes queda a cada lado. Los de conjunto no entran en el cálculo.',
   podio:'Finales disputadas = podios (1.º a 3.º) + finalistas sin podio (4.º a 8.º). Conversión = podios ÷ finales disputadas. Grupos: menos de 50 %, de 50 % a menos de 80 %, 80 % o más.',
   gender:'',
   genderBase:'Equipo: mujeres ÷ delegación. Medallas: medallas de pruebas femeninas ÷ total de medallas, sin pruebas mixtas. Diferencia: medallas % − equipo %, en puntos. La línea punteada marca el 50 %.',
@@ -8114,6 +8096,7 @@ document.addEventListener('click', e => {
   const g = e.target.closest('[data-goto]'); if(g){ showTab(g.dataset.goto); return; }
   const m = e.target.closest('[data-metric]'); if(m){ state.metric = m.dataset.metric; renderEvents(LAST_A); return; }
   const o = e.target.closest('[data-sort]'); if(o){ state.sort = o.dataset.sort; renderSports(LAST_A); return; }
+  const md = e.target.closest('[data-medal]'); if(md){ state.medal = md.dataset.medal; renderSports(LAST_A); return; }
 });
 
 $('athBody').addEventListener('input', e => { if(e.target.id !== 'athSearch') return; ATH.q = e.target.value; ATH.page = 1; paintAth(); });

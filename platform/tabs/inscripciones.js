@@ -1,4 +1,4 @@
-/* Pestaña Inscripciones (plataforma): orden original (KPIs, cupos, jornada+equipo, género, deportes+sin Colombia) y la lista de inscritos al final. */
+/* Pestaña Nominal (plataforma; antes «Inscripciones»): solo lo de Colombia (KPIs, cupos, jornada+tipo, género, por deporte) y la nómina al final. No registra deportes ni pruebas sin Colombia. */
 (function () {
   window.Tabs = window.Tabs || {};
   var C = window.NWIN, U = C.U, esc = C.esc, num = C.num, plural = C.plural;
@@ -14,17 +14,17 @@
   }
 
   function kpi(kind, val, label, hint) {
-    return '<article class="nwtab-in-kpi"><header class="nwtab-in-kpi__h"><span class="nwtab-in-kpi__i nwtab-in-kpi__i--' + kind + '">' + icon(kind === 'a' ? 'user' : kind === 'b' ? 'globe' : kind === 'c' ? 'star' : 'list') + '</span><small class="nwtab-in-kpi__hint">' + esc(hint) + '</small></header><strong class="nwtab-in-kpi__v">' + val + '</strong><span class="nwtab-in-kpi__l">' + esc(label) + '</span></article>';
+    return '<article class="nwtab-in-kpi"><header class="nwtab-in-kpi__h"><span class="nwtab-in-kpi__i nwtab-in-kpi__i--' + kind + '">' + icon(kind === 'a' ? 'user' : kind === 'b' ? 'list' : kind === 'c' ? 'star' : 'list') + '</span><small class="nwtab-in-kpi__hint">' + esc(hint) + '</small></header><strong class="nwtab-in-kpi__v">' + val + '</strong><span class="nwtab-in-kpi__l">' + esc(label) + '</span></article>';
   }
 
-  /* Sin «delegación», «en disputa» ni «con inscritos»: cada KPI nombra su unidad (diagnóstico de Inscripciones). */
+  /* Nominal: cada KPI es de Colombia y nombra su unidad. Sin países, sin «de N del evento». */
   function kpis(c, data) {
     var real = data.evento && data.evento.real, oficial = real && data.colombia && data.colombia.atletas;
     var h = '<div class="nwtab-in-kpis">' +
-      kpi('a', num(c.deportistas), c.t === 'futuro' ? 'Deportistas inscritos' : 'Deportistas de Colombia', plural(c.ins, 'inscripción a prueba', 'inscripciones a pruebas')) +
-      kpi('b', num(c.paises), c.t === 'futuro' ? 'Países invitados' : 'Países participantes', c.t === 'futuro' ? 'Al evento' : 'En el evento') +
-      kpi('c', num(c.deps.length), 'Deportes', (c.t === 'pasado' ? 'Colombia compitió en ' : c.t === 'presente' ? 'Colombia compite en ' : 'Colombia competirá en ') + c.deps.filter(function (s) { return s.pc; }).length) +
-      kpi('d', num(c.pruebas), 'Pruebas', c.pruebasCol + ' con Colombia') + '</div>';
+      kpi('a', num(c.deportistas), 'Deportistas', 'Nominal de Colombia') +
+      kpi('c', num(c.deps.length), 'Deportes', 'Con deportistas de Colombia') +
+      kpi('d', num(c.pruebasCol), 'Pruebas', 'Con deportistas de Colombia') +
+      kpi('b', num(c.ins), 'Participaciones', 'Un deportista en una prueba') + '</div>';
     if (oficial && oficial > c.deportistas) h += '<p class="nwtab-in-note">Se reportan ' + num(oficial) + ' atletas; acá se cuentan los ' + num(c.deportistas) + ' que figuran en las pruebas cargadas.</p>';
     return h;
   }
@@ -32,12 +32,12 @@
   function render(el, ctx) {
     var data = ctx.data, ui = ctx.ui.ins = ctx.ui.ins || {}, c = C.calc(data), h;
     if (!(data.pruebas || []).length) {
-      el.innerHTML = '<section class="nwtab-tab nwtab-ins-root" aria-label="Inscripciones"><div class="nwtab-emptyb nwtab-emptyb--lg"><b>Sin datos disponibles</b><span>Este evento todavía no tiene pruebas publicadas.</span></div></section>';
+      el.innerHTML = '<section class="nwtab-tab nwtab-ins-root" aria-label="Nominal"><div class="nwtab-emptyb nwtab-emptyb--lg"><b>Sin datos disponibles</b><span>Este evento todavía no tiene pruebas publicadas.</span></div></section>';
       return;
     }
-    h = '<section class="nwtab-tab nwtab-ins-root" aria-label="Inscripciones">' + kpis(c, data) + C.cupos(c) +
+    h = '<section class="nwtab-tab nwtab-ins-root" aria-label="Nominal">' + kpis(c, data) + C.cupos(c) +
       '<div class="nwtab-in-row nwtab-in-row--a">' + C.jornada(c, ui) + C.tipo(c) + '</div>' + C.genero(c, ui) +
-      '<div class="nwtab-in-row nwtab-in-row--b">' + C.deportes(c, ui) + C.sinColombia(c) + '</div>' + C.tabla.render(c, ui, data) + '</section>';
+      C.deportes(c, ui) + C.tabla.render(c, ui, data) + '</section>';
     el.innerHTML = h;
     C.cerrarInfo();
     function again(key) { window.Tabs['inscripciones'].render(el, ctx); U().refocus(key); }

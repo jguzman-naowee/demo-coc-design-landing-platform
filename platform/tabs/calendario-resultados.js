@@ -92,7 +92,7 @@
   N.hayColombia = function (data) { return !!(data.colombia && data.colombia.participa > 0); };
   N.colOn = function (params, data) { return N.hayColombia(data) && String(params.colombia) !== '0'; };
   N.colSwitch = function (params, data) {
-    if (!N.hayColombia(data)) return '';
+    return ''; /* sin interruptor: solo se registran pruebas con Colombia */
     var on = N.colOn(params, data); /* ausente = encendido; 0 = apagado */
     return '<button type="button" class="nwtab-sw" role="switch" aria-checked="' + on + '" data-k="col" data-col="' + (on ? '0' : '') + '"><span class="nwtab-sw__t" aria-hidden="true"><i></i></span><span class="nwtab-sw__l"><span>Solo pruebas</span> <span>con Colombianos</span></span></button>';
   };
@@ -317,8 +317,9 @@
 
   var SEXOS = { F: 'Femenino', M: 'Masculino', X: 'Mixto' };
   /* DC-097: título a la izquierda como los otros filtros, interruptor a la derecha de la misma fila. */
+  /* Sin interruptor: el calendario ya trae solo pruebas con Colombia (OLC.soloColombia). */
   function colSwitch(params, data) {
-    if (!N.hayColombia(data)) return '';
+    return '';
     var on = N.colOn(params, data); /* ausente = encendido; 0 = apagado */
     return '<div class="nwtab-fld nwtab-fld--sw"><span class="nwtab-lbl nwtab-lbl--2l" id="nwtab-col-l"><span>Solo pruebas</span> <span>con Colombianos</span></span><button type="button" class="nwtab-sw" role="switch" aria-checked="' + on + '" aria-labelledby="nwtab-col-l" data-k="col" data-col="' + (on ? '0' : '') + '"><span class="nwtab-sw__t" aria-hidden="true"><i></i></span></button></div>';
   }
@@ -385,12 +386,12 @@
       (rondas.length > 1 ? selectHtml('f-ron', 'Ronda', ui.ronda, [['', 'Todas las rondas']].concat(rondas.map(function (r) { return [r, r]; }))) : '');
     var hayFiltro = !!(pr.sexo || pr.deporte || ui.prueba || ui.ronda), colOn = N.colOn(pr, data);
     /* DC-101: siempre pintado (deshabilitado sin filtros) para que el panel no cambie de alto. */
-    var hayAlgo = hayFiltro || (N.hayColombia(data) && !colOn) || !!pr.q;
+    var hayAlgo = hayFiltro || !!pr.q;
     if (ctrl) ctrl += '<div class="nwtab-clr"><button type="button" class="nwtab-btn nwtab-btn--clr" data-k="clr-all" data-clr-all="1"' + (hayAlgo ? '' : ' disabled aria-disabled="true"') + '><i class="naotech-icon-refresh" aria-hidden="true"></i>Limpiar filtros</button></div>';
 
     var main = '';
     if (!base.length) {
-      main = '<div class="nwtab-emptyb"><b>Ninguna competencia coincide con los filtros.</b><span>' + (hayFiltro ? 'Pruebe con otros criterios o restablézcalos.' : 'Este evento aún no tiene competencias.') + '</span>' + (hayFiltro ? '<button type="button" class="nwtab-btn" data-k="clr" data-clr="1">Limpiar filtros</button>' : '') + '</div>';
+      main = '<div class="nwtab-emptyb"><b>Ninguna competencia coincide con los filtros.</b><span>' + (hayFiltro ? 'Pruebe con otros criterios o restablézcalos.' : 'Este evento aún no tiene competencias con Colombia.') + '</span>' + (hayFiltro ? '<button type="button" class="nwtab-btn" data-k="clr" data-clr="1">Limpiar filtros</button>' : '') + '</div>';
     } else {
       var acciones = '<div class="nwtab-all"><button type="button" class="nwtab-btn nwtab-btn--i" data-k="mas" data-menu="1" title="Más acciones" aria-label="Más acciones" aria-haspopup="menu" aria-expanded="false">' + ICO_MAS + '</button></div>';
       var delDia = base.filter(function (p) { return p.fecha === dia; }), t = N.tiempoDia(dia);
@@ -398,7 +399,7 @@
       if (delDia.length) main += grupos(delDia, ctx, ui, '');
       else {
         /* DC-112: el vacío del día queda solo con su texto, sin botones. */
-        main += '<div class="nwtab-emptyb"><b>No hay competencias ' + (colOn ? 'con Colombia ' : '') + 'este día.</b></div>';
+        main += '<div class="nwtab-emptyb"><b>Colombia no compite este día.</b></div>';
       }
     }
 
