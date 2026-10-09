@@ -6,77 +6,111 @@
 <title>Prototipos · Eventos Ciclo Olímpico</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#f5f6fa;--card:#fff;--line:#e3e5ef;--ink:#20212b;--mut:#5a5c70;--plat:#1f55d6;--land:#2e2dc4;--acc:#e8b923}
+  :root{--naranja:#ff7500;--azul:#002b5b;--accent:#d74009;--text-primary:#282834;--text-secondary:#646587;--text-muted:#9ca0b8;--surface:#fff;--border:#e7e9f3;--border-dark:#d0d4e6;--accent-bg:#fff3e6;--accent-bg-warm:#ffe4cf;--plat:#d74009;--land:#2e2dc4;--ease:cubic-bezier(.22,1,.36,1)}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Mulish,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
-  main{max-width:1040px;margin:0 auto;padding:48px 24px 64px}
-  h1{font-size:28px;margin:0 0 6px}
-  .sub{color:var(--mut);margin:0 0 28px}
-  .warn{display:none;margin:0 0 24px;padding:12px 16px;border-radius:12px;background:#fff6d6;border:1px solid #ecd27a;color:#5b4700;font-size:14px}
-  .warn code{background:rgba(0,0,0,.07);padding:1px 6px;border-radius:6px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
-  .card header{padding:22px 24px 18px;color:#fff}
-  .card.plat header{background:var(--plat)}
-  .card.land header{background:var(--land)}
-  .card h2{margin:0 0 4px;font-size:22px}
-  .card header p{margin:0;font-size:14px;opacity:.9}
-  .enter{display:inline-flex;align-items:center;gap:8px;margin:18px 24px 6px;min-height:44px;padding:0 20px;border-radius:12px;font-weight:700;text-decoration:none;align-self:flex-start;color:#fff}
-  .plat .enter{background:var(--plat)}.land .enter{background:var(--land)}
-  .enter:focus-visible,.links a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
-  .links{list-style:none;margin:0;padding:6px 24px 22px}
-  .links li{border-top:1px solid var(--line)}
-  .links a{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:48px;padding:10px 0;color:var(--ink);text-decoration:none;font-size:15px}
-  .links a:hover{color:var(--plat)}.land .links a:hover{color:var(--land)}
-  .links small{color:var(--mut);font-size:13px;white-space:nowrap}
-  .note{margin-top:28px;color:var(--mut);font-size:14px}
-  .note b{color:var(--ink)}
-  @media (max-width:760px){.grid{grid-template-columns:1fr}}
+  body{margin:0;min-height:100vh;padding:56px 24px;display:flex;flex-direction:column;color:var(--text-primary);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 85% -10%,rgba(255,117,0,.08),transparent 60%),radial-gradient(900px 500px at -5% 110%,rgba(0,43,91,.08),transparent 55%),linear-gradient(180deg,#f8f9fc 0%,#eef0f7 100%)}
+  .wrap{max-width:1080px;width:100%;margin:0 auto;flex:1;display:flex;flex-direction:column}
+  .masthead{display:flex;align-items:center;gap:16px;margin-bottom:48px}
+  .masthead img{height:36px;width:auto;display:block}
+  .chip{margin-left:auto;display:inline-flex;align-items:center;gap:7px;padding:7px 13px;background:var(--surface);border:1px solid var(--border);border-radius:999px;font-size:12px;font-weight:600;color:var(--text-secondary)}
+  .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--naranja)}
+  .hero{max-width:720px;margin-bottom:40px}
+  .eyebrow{display:inline-block;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--naranja);margin-bottom:14px}
+  h1{font-size:clamp(30px,4vw,44px);font-weight:800;line-height:1.05;letter-spacing:-1.2px;color:var(--azul);margin:0 0 16px}
+  .hero p{font-size:16px;line-height:1.6;color:var(--text-secondary);margin:0}
+  .label{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin:0 0 14px}
+  .label span{text-transform:none;font-weight:600}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+  .card{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;transition:transform .25s var(--ease),box-shadow .25s var(--ease),border-color .25s var(--ease)}
+  .card::before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:var(--c);transform:scaleY(0);transform-origin:top;transition:transform .25s var(--ease)}
+  .card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(40,40,52,.08);border-color:color-mix(in srgb,var(--c) 45%,var(--border))}
+  .card:hover::before{transform:scaleY(1)}
+  .top{display:flex;align-items:center;gap:13px}
+  .avatar{width:46px;height:46px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c)}
+  .name{font-size:16px;font-weight:700;line-height:1.25}
+  .tag{font-size:10px;font-weight:700;letter-spacing:.4px;color:var(--text-muted);text-transform:uppercase;margin-top:3px}
+  .desc{font-size:13px;line-height:1.5;color:var(--text-secondary);margin:0}
+  .cta{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--c);text-decoration:none;align-self:flex-start}
+  .cta svg{width:15px;height:15px;transition:transform .25s var(--ease)}
+  .cta:hover svg{transform:translateX(3px)}
+  .links{list-style:none;margin:0;padding:0;flex:1}
+  .links li{border-top:1px solid var(--border)}
+  .links a{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px;padding:8px 0;color:var(--text-primary);text-decoration:none;font-size:14px}
+  .links a:hover{color:var(--c)}
+  .links small{color:var(--text-muted);font-size:12px;white-space:nowrap}
+  a:focus-visible{outline:3px solid var(--naranja);outline-offset:2px;border-radius:6px}
+  .rp{display:flex;align-items:center;gap:16px;margin-top:24px;padding:18px 22px;background:var(--surface);border:1px solid var(--accent-bg-warm);border-radius:16px;text-decoration:none;color:var(--text-primary);box-shadow:0 1px 3px rgba(215,64,9,.05);transition:transform .25s var(--ease),box-shadow .25s,border-color .25s}
+  .rp:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(40,40,52,.08);border-color:var(--accent)}
+  .rp__ico{flex-shrink:0;width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--accent-bg);color:var(--accent)}
+  .rp__ico svg,.rp__arrow svg{width:22px;height:22px}
+  .rp__body{flex:1;font-size:14px;color:var(--text-secondary)}
+  .rp__body strong{display:block;font-size:15px;color:var(--text-primary);margin-bottom:2px}
+  .rp__arrow{color:var(--accent);flex-shrink:0}
+  .foot{margin-top:auto;padding-top:48px;font-size:12px;color:var(--text-muted)}
+  .foot strong{color:var(--text-secondary)}.foot a{color:var(--text-secondary)}
+  @media (max-width:600px){body{padding:32px 16px}.masthead{flex-wrap:wrap;gap:12px}.chip{margin-left:0}.links small{display:none}}
+  @media (prefers-reduced-motion:reduce){.card,.card::before,.cta svg,.rp{transition:none}}
 </style>
 </head>
 <body>
-<main>
-  <h1>Prototipos · Eventos Ciclo Olímpico</h1>
-  <p class="sub">La misma experiencia con la piel de cada front. Fecha simulada: 18 de septiembre de 2026.</p>
+<div class="wrap">
+  <header class="masthead">
+    <img src="assets/naowee.svg" alt="Naowee">
+    <span class="chip"><span class="dot"></span>Eventos Ciclo Olímpico · demo</span>
+  </header>
 
-  <p class="warn" id="warn" role="note">Estás abriendo esto como archivo local. Algunas piezas (componentes Stencil) necesitan un servidor: en esta carpeta ejecuta <code>python3 -m http.server 4300</code> y abre <code>http://localhost:4300/</code>.</p>
+  <section class="hero">
+    <span class="eyebrow">Comité Olímpico Colombiano · Eventos</span>
+    <h1>Eventos del Ciclo Olímpico</h1>
+    <p>La misma experiencia con la piel de cada front. Fecha simulada: 18 de septiembre de 2026.</p>
+  </section>
 
+
+  <p class="label">Entra a <span>(prototipo por front)</span></p>
   <div class="grid">
-    <section class="card plat" aria-labelledby="t-plat">
-      <header><h2 id="t-plat">Plataforma</h2><p>Naowee Suite · app interna (SDK foundations, Inter)</p></header>
-      <a class="enter" href="platform/index.html#/dashboards">Entrar a la plataforma →</a>
+    <section class="card" style="--c:var(--plat)" aria-labelledby="t-plat">
+      <div class="top"><span class="avatar">PL</span><div><div class="name" id="t-plat">Plataforma</div><div class="tag">Naowee Suite · app interna</div></div></div>
+      <p class="desc">Para quien gestiona: dashboard del ciclo y un espacio por evento.</p>
       <ul class="links">
-        <li><a href="platform/index.html#/eventos"><span>Listado de eventos</span><small>tarjetas y calendario</small></a></li>
-        <li><a href="platform/index.html#/eventos/jja-2026?tab=calendario-resultados"><span>Calendario y resultados</span><small>evento internacional · en curso</small></a></li>
-        <li><a href="platform/index.html#/eventos/jja-2026?tab=deportes"><span>Deportes</span><small>lista y pruebas</small></a></li>
-        <li><a href="platform/index.html#/eventos/jja-2026?tab=medalleria"><span>Medallería</span><small>Top 5 + Colombia</small></a></li>
-        <li><a href="platform/index.html#/eventos/jja-2026?tab=deportistas"><span>Deportistas</span><small>inscritos</small></a></li>
-        <li><a href="platform/index.html#/eventos/jja-2026?tab=dashboard"><span>Dashboard</span><small>espacio reservado</small></a></li>
-        <li><a href="platform/index.html#/eventos/copa-coc-cali-2026?tab=medalleria"><span>Evento finalizado</span><small>medallería por país</small></a></li>
+        <li><a href="demo.html?f=platform#/eventos"><span>Listado de eventos</span><small>tarjetas y calendario</small></a></li>
+        <li><a href="demo.html?f=platform#/eventos/jja-2026?tab=calendario-resultados"><span>Calendario y resultados</span><small>evento internacional · en curso</small></a></li>
+        <li><a href="demo.html?f=platform#/eventos/jja-2026?tab=deportes"><span>Deportes</span><small>lista y pruebas</small></a></li>
+        <li><a href="demo.html?f=platform#/eventos/jja-2026?tab=medalleria"><span>Medallería</span><small>Top 5 + Colombia</small></a></li>
+        <li><a href="demo.html?f=platform#/eventos/jja-2026?tab=deportistas"><span>Deportistas</span><small>inscritos</small></a></li>
+        <li><a href="demo.html?f=platform#/eventos/jja-2026?tab=dashboard"><span>Dashboard</span><small>espacio reservado</small></a></li>
+        <li><a href="demo.html?f=platform#/eventos/copa-coc-cali-2026?tab=medalleria"><span>Evento finalizado</span><small>medallería por país</small></a></li>
       </ul>
+      <a class="cta" href="demo.html?f=platform#/dashboards">Entrar a la plataforma <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
     </section>
 
-    <section class="card land" aria-labelledby="t-land">
-      <header><h2 id="t-land">Landing</h2><p>Ciclo Olímpico · sitio público (marca de producción, Mulish)</p></header>
-      <a class="enter" href="landing/index.html#/">Entrar al landing →</a>
+    <section class="card" style="--c:var(--land)" aria-labelledby="t-land">
+      <div class="top"><span class="avatar">LA</span><div><div class="name" id="t-land">Landing</div><div class="tag">Ciclo Olímpico · sitio público</div></div></div>
+      <p class="desc">Para el público: eventos por estado, resultados y soporte.</p>
       <ul class="links">
-        <li><a href="landing/index.html#/"><span>Portada</span><small>eventos por estado y soporte</small></a></li>
-        <li><a href="landing/index.html#/eventos/jja-2026?tab=calendario-resultados"><span>Calendario y resultados</span><small>evento internacional · en curso</small></a></li>
-        <li><a href="landing/index.html#/eventos/jja-2026?tab=deportes"><span>Deportes</span><small>lista y pruebas</small></a></li>
-        <li><a href="landing/index.html#/eventos/jja-2026?tab=medalleria"><span>Medallería</span><small>Top 5 + Colombia</small></a></li>
-        <li><a href="landing/index.html#/eventos/copa-coc-cali-2026"><span>Evento finalizado</span><small>Medallería · Dashboard · Deportes</small></a></li>
-        <li><a href="landing/index.html#/eventos/intercolegiados-2026"><span>Evento próximo</span><small>aún sin resultados</small></a></li>
-        <li><a href="landing/index.html#/soporte"><span>Formulario de soporte</span><small>en la portada</small></a></li>
+        <li><a href="demo.html?f=landing#/"><span>Portada</span><small>eventos por estado y soporte</small></a></li>
+        <li><a href="demo.html?f=landing#/eventos/jja-2026?tab=calendario-resultados"><span>Calendario y resultados</span><small>evento internacional · en curso</small></a></li>
+        <li><a href="demo.html?f=landing#/eventos/jja-2026?tab=deportes"><span>Deportes</span><small>lista y pruebas</small></a></li>
+        <li><a href="demo.html?f=landing#/eventos/jja-2026?tab=medalleria"><span>Medallería</span><small>Top 5 + Colombia</small></a></li>
+        <li><a href="demo.html?f=landing#/eventos/copa-coc-cali-2026"><span>Evento finalizado</span><small>Medallería · Dashboard · Deportes</small></a></li>
+        <li><a href="demo.html?f=landing#/eventos/intercolegiados-2026"><span>Evento próximo</span><small>aún sin resultados</small></a></li>
+        <li><a href="demo.html?f=landing#/soporte"><span>Formulario de soporte</span><small>en la portada</small></a></li>
       </ul>
+      <a class="cta" href="demo.html?f=landing#/">Entrar al landing <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
     </section>
   </div>
 
-  <p class="note">Dentro de cada prototipo hay un <b>conmutador flotante</b> (arriba a la derecha, arrastrable) para pasar de Plataforma a Landing conservando la ruta y los filtros. Detalles y contrato en <a href="SPEC.md">SPEC.md</a>.</p>
-</main>
-<script>
-  if (location.protocol === 'file:') document.getElementById('warn').style.display = 'block';
-</script>
+  <a class="rp" href="contrapropuesta.html">
+    <span class="rp__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+    <span class="rp__body"><strong>Contrapropuesta</strong>Un solo lugar por evento, en vez de un dashboard detrás de un botón.</span>
+    <span class="rp__arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+  </a>
+
+  <footer class="foot">
+    <strong>Naowee · Eventos Ciclo Olímpico</strong> — sandbox visual para el equipo. Dentro de la demo, el botón «Configuraciones» cambia de Plataforma a Landing conservando ruta y filtros. Contrato en <a href="SPEC.md">SPEC.md</a>.
+  </footer>
+</div>
 </body>
 </html>

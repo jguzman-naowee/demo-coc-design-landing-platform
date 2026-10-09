@@ -20,9 +20,8 @@
 <link rel="stylesheet" href="tabs/tabs.css">
 <link rel="stylesheet" href="tabs/medalleria.css">
 <link rel="stylesheet" href="tabs/inscripciones/inscripciones.css">
-<!-- Redirige el import de sdk-frontend-web (no resuelve sin bundler) al stub local mínimo. -->
-<script type="importmap">{"imports":{"@naowee-tech/sdk-frontend-web":"./assets/sdk-web-stub.js"}}</script>
-<script type="module" src="../vendor/stencil/nwt/nwt.esm.js"></script>
+<!-- Bundle clásico de los componentes: un type="module" no carga con file://. Se regenera con scripts/bundle-nwt.cjs. -->
+<script defer src="../vendor/stencil/nwt.bundle.js"></script>
 </head>
 <body>
 <a class="nws-skip" href="#nws-main">Saltar al contenido</a>
@@ -55,6 +54,6 @@
 <script src="tabs/inscripciones/tabla.js"></script>
 <script src="tabs/inscripciones.js"></script>
 <script src="app.js"></script>
-<script src="../shared/switcher.js" data-current="platform"></script>
+<script src="../shared/embed.js"></script>
 </body>
 </html>
