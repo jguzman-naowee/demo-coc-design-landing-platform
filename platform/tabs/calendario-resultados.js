@@ -219,7 +219,7 @@
       var m = +k.slice(5) - 1, y = +k.slice(0, 4);
       return '<div class="nwtab-strip__m" role="group" aria-label="' + MESES[m] + ' de ' + y + '"><div class="nwtab-strip__d">' + dias.filter(function (d) { return d.slice(0, 7) === k; }).map(function (iso) {
         var dt = new Date(iso + 'T12:00:00'), wd = SEM_N[(dt.getDay() + 6) % 7], tm = N.tiempoDia(iso);
-        var cd = OLC.colombiaDia(ctx.data, iso), colDia = !!(cd && cd.compite > 0);
+        var colDia = false; /* Todo el evento es de Colombia: ni bandera ni color por país en la tira */
         var bd = colDia ? OLC.bandera('CO', 40) : null;
         var dot = colDia ? '<span class="nwtab-cal__band" aria-hidden="true">' + (bd ? '<img src="' + bd.src + '" srcset="' + bd.srcset + '" width="28" height="14" alt="" onerror="this.remove()">' : '') + '</span>' : '';
         var inner = '<span class="nwtab-cal__wd" aria-hidden="true">' + wd.slice(0, 3) + '</span><span class="nwtab-cal__mo" aria-hidden="true">' + MESES[dt.getMonth()].slice(0, 3).toLowerCase() + '</span><span class="nwtab-cal__n" aria-hidden="true">' + dt.getDate() + '</span>';
@@ -437,18 +437,21 @@
     };
     var centra = function () { centrarTira(el); };
     var fija = function (v) { if (cal.classList.contains('is-stuck') !== v) { cal.classList.toggle('is-stuck', v); centra(); } };
-    var limpia = function () { if (io) io.disconnect(); io = null; window.removeEventListener('resize', arma); delete el._nwtabCalOff; };
+    var ro = null, ancho = el.clientWidth;
+    var limpia = function () { if (io) window.removeEventListener('scroll', io); io = null; if (ro) ro.disconnect(); ro = null; window.removeEventListener('resize', arma); delete el._nwtabCalOff; };
     function arma() {
-      if (io) io.disconnect(); io = null;
+      if (io) window.removeEventListener('scroll', io); io = null;
       if (!el.contains(cal)) return limpia();
       var off = parseFloat(getComputedStyle(cal).top);
       if (getComputedStyle(cal).position !== 'sticky' || isNaN(off)) { fija(false); return; }
       mide();
       fija(sent.getBoundingClientRect().bottom <= off);
-      io = new IntersectionObserver(function (es) { fija(es[es.length - 1].boundingClientRect.bottom <= off); }, { rootMargin: '-' + off + 'px 0px 0px 0px', threshold: [0, 1] });
-      io.observe(sent);
+      io = function () { fija(sent.getBoundingClientRect().bottom <= off); }; /* scroll directo: el observer se salta los saltos rápidos */
+      window.addEventListener('scroll', io, { passive: true });
     }
     window.addEventListener('resize', arma);
+    /* Contraer el menú cambia el ancho útil sin evento resize: rearma para que la tira no quede pegada a medias. */
+    if (window.ResizeObserver) { ro = new ResizeObserver(function () { if (el.clientWidth !== ancho) { ancho = el.clientWidth; arma(); } }); ro.observe(el); }
     el._nwtabCalOff = limpia;
     arma();
   }

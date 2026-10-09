@@ -555,7 +555,7 @@ dialog.nwtab-dpm::backdrop { background: rgb(10 10 10 / .6); }
   .nwtab-calres { --nwtab-sk: calc(var(--nws-hh, 45px) + 49px); }
   .nwtab-calres > .nwtab-cr__cal { position: sticky; top: var(--nwtab-sk); z-index: 5; }
   /* DC-053: pegada = compacta y de borde a borde del área de contenido; margin-bottom conserva el alto lleno para no mover el contenido. */
-  .nwtab-cr__cal.is-stuck { margin-inline: calc(50% - 50cqw); padding: 8px calc(50cqw - 50% + 16px); gap: 0; border-width: 0 0 1px; border-radius: 0; margin-bottom: calc(var(--nwtab-cal-full, 0px) - var(--nwtab-cal-h, 0px)); box-shadow: 0 2px 8px rgba(0, 0, 0, .08); }
+  .nwtab-cr__cal.is-stuck { margin-inline: calc(50% - 50cqw); padding: 8px calc(50cqw - 50% + 16px); gap: 0; border-width: 0 0 1px; border-radius: 0; margin-bottom: calc(var(--nwtab-cal-full, 0px) - var(--nwtab-cal-h, 0px)); }
   .nwtab-cr__cal.is-stuck .nwtab-strip { padding-bottom: 0; }
   .nwtab-cr__cal.is-stuck .nwtab-stripw::before, .nwtab-cr__cal.is-stuck .nwtab-stripw::after { min-height: 0; }
   .nwtab-cr__cal.is-stuck .nwtab-cal__d { width: 64px; min-width: 64px; max-width: 64px; flex-basis: 64px; height: 42px; min-height: 42px; max-height: 42px; padding: 2px 0; gap: 0; }

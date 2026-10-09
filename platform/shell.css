@@ -181,7 +181,7 @@ nwt-tag-group .nwt-tag-group__tag{min-height:34px}
 .nws-event-detail-tabs__strip{overflow-x:auto;scrollbar-width:thin}
 /* Barra de pestañas pegada bajo el head (--nws-hh lo mide app.js); is-stuck solo agrega sombra. */
 .nws-tabnav{position:sticky;top:var(--nws-hh,45px);z-index:40;background:var(--naotech-app-background);border-bottom:var(--naotech-app-border-1-200)}
-.nws-tabnav.is-stuck{box-shadow:0 2px 8px rgba(0,0,0,.08);margin-inline:calc(50% - 50cqw);padding-inline:calc(50cqw - 50%)} /* DC-060: pegada, ancho completo del área de contenido; el padding conserva la x de las pestañas */
+.nws-tabnav.is-stuck{margin-inline:calc(50% - 50cqw);padding-inline:calc(50cqw - 50%)} /* DC-060: pegada, ancho completo del área de contenido; el padding conserva la x de las pestañas */
 .nws-tabnav__sent{height:1px;margin-top:-1px;pointer-events:none}
 .nws-tabnav__row{display:flex}
 .nws-tabnav .nws-event-detail-tabs__strip{min-width:0}

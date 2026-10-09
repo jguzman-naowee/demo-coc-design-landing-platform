@@ -215,7 +215,7 @@
     var h = '<div class="lp-mini"><div class="lp-stripw">' + nav('prev', ant, 'left', 'Días anteriores') + '<div class="lp-strip">' + meses.map(function (k) {
       var mo = +k.slice(5, 7) - 1;
       return '<div class="lp-strip-m" role="group" aria-label="Jornadas de ' + MESES[mo] + '"><div class="lp-strip-d">' + todos.filter(function (d) { return d.slice(0, 7) === k; }).map(function (iso) {
-        var dt = new Date(iso + 'T12:00:00'), info = porDia[iso], sel = iso === dia, cd = data.colombia.participa && OLC.colombiaDia(data, iso), co = !!(cd && cd.compite);
+        var dt = new Date(iso + 'T12:00:00'), info = porDia[iso], sel = iso === dia, co = false; /* Todo el evento es de Colombia: ni bandera ni color por país en la tira */
         if (iso < ev.inicio || iso > ev.fin) return '<span class="lp-dd off" aria-hidden="true"><span class="lp-dd-m">' + MES3[dt.getMonth()] + '</span><span class="lp-dd-w">' + SEM3[dt.getDay()] + '</span><span class="lp-dd-n">' + dt.getDate() + '</span></span>';
         var e = estDia(iso), c = e === 'Pasada' ? 'past' : e === 'Hoy' ? 'today' : 'fut';
         var bd = co ? OLC.bandera('CO', 40) : null; /* DC-143/144: banda con bandera en la esquina; sin dots */
