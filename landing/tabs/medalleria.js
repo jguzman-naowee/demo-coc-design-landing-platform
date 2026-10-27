@@ -22,7 +22,7 @@
       rows.forEach(function (r) { tot.oro += r.oro; tot.plata += r.plata; tot.bronce += r.bronce; tot.total += r.total; });
       var titulo = porDep ? 'Medallería por deporte · ' + depNom : 'Medallería general';
 
-      var h = '<div class="lp-tab lp-med"><div class="lp-med-bar"><div class="lp-med-t"><span class="lp-med-ic">' + L.svg('medal') + '</span><h2>' + esc(titulo) + '</h2></div>' +
+      var h = '<div class="lp-tab lp-med"><div class="lp-med-bar"><div class="lp-med-t"><span class="lp-med-ic">' + L.svg('medal') + '</span><h2>' + esc(porDep ? 'Medallería podio · ' + depNom : 'Medallería podio') + '</h2></div>' +
         (corte ? '<div class="lp-seg lp-seg-txt" role="group" aria-label="Corte del medallero"><button type="button" data-modo="general" aria-pressed="' + !porDep + '">General</button><button type="button" data-modo="deporte" aria-pressed="' + porDep + '">Por deporte</button></div>' : '') + '</div>';
 
       if (porDep) {
@@ -36,9 +36,19 @@
         bind(); return;
       }
 
-      h += '<div class="lp-tot">' + [['g', 'Oro', 'Medallas de oro', tot.oro], ['s', 'Plata', 'Medallas de plata', tot.plata], ['b', 'Bronce', 'Medallas de bronce', tot.bronce], ['t', 'Total', 'Total de medallas', tot.total]].map(function (c) {
-        return '<div class="lp-tc lp-tc-' + c[0] + '"><span class="lp-tdot" aria-hidden="true"></span><span><span class="lp-tl"><span class="lp-tl-s">' + c[1] + '</span><span class="lp-tl-l">' + c[2] + '</span></span><b class="lp-tn">' + c[3] + '</b></span></div>';
-      }).join('') + '</div>';
+      /* Podio: los tres primeros del corte vigente (2-1-3 en escritorio, 1-2-3 apilado en móvil) */
+      /* Bandera a la izquierda del nombre; si la imagen falla queda el código */
+      var bandera = function (r) {
+        var b = OLC.bandera(r.pais, 40);
+        return '<span class="lp-pod-fl">' + (b ? '<img src="' + esc(b.src) + '" srcset="' + esc(b.srcset) + '" width="28" height="21" alt="" onerror="this.hidden=true;this.nextSibling.hidden=false">' : '') + '<span class="lp-pod-fc"' + (b ? ' hidden' : '') + '>' + esc(r.pais) + '</span></span>';
+      };
+      h += '<section class="lp-pod" aria-label="Podio de la medallería"><ol class="lp-pod-l">' + rows.slice(0, 3).map(function (r, i) {
+        var k = i + 1;
+        return '<li class="lp-pod-i lp-pod-' + k + (r.pais === 'CO' ? ' lp-pod-co' : '') + '"><span class="lp-pod-av">' + OLC.medalla(['gold', 'silver', 'bronze'][i], k, k === 1 ? 190 : 140, '') + '</span>' +
+          '<span class="lp-sr">Posición ' + r.pos + '</span><b class="lp-pod-n">' + bandera(r) + esc(r.paisNombre) + '</b>' +
+          '<span class="lp-pod-s">' + r.oro + ' oro · ' + r.plata + ' plata · ' + r.bronce + ' bronce</span>' +
+          '<span class="lp-pod-t">' + r.total + (r.total === 1 ? ' medalla' : ' medallas') + '</span></li>';
+      }).join('') + '</ol></section>';
 
       /* top 5 + Colombia fijada */
       var colIx = rows.map(function (r) { return r.pais; }).indexOf('CO');
@@ -46,13 +56,15 @@
       var fijar = false;
       var fila = function (r) {
         var co = r.pais === 'CO';
-        return '<tr' + (co ? ' class="lp-mco"' : '') + '><td><span class="lp-pos lp-p' + (r.pos <= 3 ? r.pos : '') + '"><span class="lp-sr">Posición </span>' + r.pos + '</span></td>' +
+        return '<tr' + (co ? ' class="lp-mco"' : '') + '><td>' + LPT.pos(r.pos, true, '<span class="lp-sr">Posición </span>') + '</td>' +
           '<td><span class="lp-mct">' + L.cc(r.pais, r.paisNombre) + '<b>' + esc(r.paisNombre) + '</b>' + (co ? '<span class="lp-mtg">Nuestro país</span>' : '') + '</span></td>' +
           '<td class="lp-r">' + r.oro + '</td><td class="lp-r">' + r.plata + '</td><td class="lp-r">' + r.bronce + '</td><td class="lp-r lp-mt">' + r.total + '</td></tr>';
       };
-      var dot = function (k, t) { return '<span class="lp-md"><span class="lp-tdot lp-tdot-' + k + '" aria-hidden="true"></span><span class="lp-md-t">' + t + '</span></span>'; };
+      var total = function () { return '<span class="lp-md lp-md--tri">' + ['gold', 'silver', 'bronze'].map(function (k) { return '<span class="lp-md--tri__' + k.charAt(0) + '">' + OLC.medalla(k, 'none', 18) + '</span>'; }).join('') + '<span class="lp-md-t">Total</span></span>'; };
+      var dot = function (k, t) { return '<span class="lp-md">' + OLC.medalla({ g: 'gold', s: 'silver', b: 'bronze' }[k], 'none', 18) + '<span class="lp-md-t">' + t + '</span></span>'; };
+      h += '<div class="lp-med-t lp-med-t2"><span class="lp-med-ic">' + L.svg('medal') + '</span><h2>' + esc(titulo) + '</h2></div>';
       h += '<div class="lp-mtw"><table class="lp-tb lp-mt-tb"><caption class="lp-sr">' + esc(titulo) + ': todos' + '</caption><thead><tr><th scope="col" class="lp-w1">Pos.</th><th scope="col">País</th>' +
-        '<th scope="col" class="lp-r lp-wm">' + dot('g', 'Oro') + '</th><th scope="col" class="lp-r lp-wm">' + dot('s', 'Plata') + '</th><th scope="col" class="lp-r lp-wm">' + dot('b', 'Bronce') + '</th><th scope="col" class="lp-r lp-wm">Total</th></tr></thead><tbody>' +
+        '<th scope="col" class="lp-r lp-wm">' + dot('g', 'Oro') + '</th><th scope="col" class="lp-r lp-wm">' + dot('s', 'Plata') + '</th><th scope="col" class="lp-r lp-wm">' + dot('b', 'Bronce') + '</th><th scope="col" class="lp-r lp-wm">' + total() + '</th></tr></thead><tbody>' +
         visibles.map(fila).join('');
       if (fijar) h += '<tr class="lp-mgap"><td colspan="6"><span><i aria-hidden="true">···</i>Colombia · posición ' + rows[colIx].pos + ' de ' + rows.length + '</span></td></tr>' + fila(rows[colIx]);
       h += '</tbody></table></div>';

@@ -240,9 +240,9 @@
     var b = root.querySelector('[data-tab="' + id + '"]'); if (b) b.focus({ preventScroll: true });
   }
 
-  function vacio(msg, desc) {
+  function vacio(msg, desc, acciones) {
     return '<div class="lp-nada"><div class="lp-nada__card" aria-hidden="true"><i></i><i></i><i></i></div>' +
-      '<p class="lp-nada__t">' + msg + '</p>' + (desc ? '<p class="lp-nada__d">' + desc + '</p>' : '') + '</div>';
+      '<p class="lp-nada__t">' + msg + '</p>' + (desc ? '<p class="lp-nada__d">' + desc + '</p>' : '') + (acciones ? '<div class="lp-nada__a">' + acciones + '</div>' : '') + '</div>';
   }
 
   /* Tarjeta-afiche: foto a sangre con degradado y texto encima. «Próximo» no navega. */
@@ -395,21 +395,29 @@
     });
   }
 
+  /* Estado vacío compartido por el inicio y el listado: mismo texto y mismas salidas. */
+  function estadoVacio(g, soon, tab, idProx) {
+    var prox = g['Próximo'][0], dProx = prox ? ' El próximo es <b>' + esc(prox.nombre) + '</b> y empieza el ' + OLC.fechaCorta(prox.inicio) + '.' : '';
+    var irA = function (id, txt) { return '<button type="button" class="lp-cta" data-go-tab="' + id + '">' + txt + '</button>'; };
+    var verPasados = '<a class="lp-nada__l" href="#/eventos?estado=finalizados">Ver eventos finalizados</a>';
+    return {
+      todos: ['Por ahora no hay eventos en curso ni próximos', 'Cuando se programe uno nuevo aparecerá aquí. Mientras tanto puedes consultar los resultados y la medallería de los eventos finalizados.', verPasados],
+      live: ['Hoy no hay eventos en competencia', 'Los eventos que estén en juego aparecerán aquí.' + dProx, soon.length ? irA(idProx || 'soon', 'Ver próximos eventos') + verPasados : verPasados],
+      soon: ['No hay eventos próximos programados', 'Los eventos que se programen aparecerán aquí. Puedes consultar los resultados de los ya finalizados.', verPasados]
+    }[tab];
+  }
+
   function homeEvents() {
     var g = agrupar(), live = g['En curso'], soon = proximosEnHorizonte(g), past = g['Finalizado'].slice(0, 5);
     var CUR = 6;
     var sets = { todos: live.concat(soon), live: live, soon: soon };
     var tab = homeState.tab;
     var list = sets[tab].slice(0, CUR);
-    var msg = {
-      todos: ['No hay eventos en curso ni próximos por ahora.', ''],
-      live: ['No hay eventos en curso por ahora.', 'Cuando un evento inicie, lo verás aquí. Mientras tanto puedes revisar lo que viene.'],
-      soon: ['No hay eventos próximos por ahora.', '']
-    }[tab];
-    var panel = list.length ? '<div class="lp-cards">' + list.map(function (e) { return card(e, 'h3'); }).join('') + '</div>' : vacio(msg[0], msg[1]);
-    return tabsHtml('lp-h', [{ id: 'todos', label: 'Todos' }, { id: 'live', label: 'En curso' }, { id: 'soon', label: 'Próximamente' }], tab, 'Filtrar eventos por estado') +
+    var msg = estadoVacio(g, soon, tab);
+    var panel = list.length ? '<div class="lp-cards">' + list.map(function (e) { return card(e, 'h3'); }).join('') + '</div>' : vacio(msg[0], msg[1], msg[2]);
+    return tabsHtml('lp-h', [{ id: 'todos', label: 'Todos (' + sets.todos.length + ')' }, { id: 'live', label: 'En curso (' + live.length + ')' }, { id: 'soon', label: 'Próximamente (' + soon.length + ')' }], tab, 'Filtrar eventos por estado') +
       '<div class="lp-tpanel" role="tabpanel" id="lp-h-p" aria-labelledby="lp-h-t-' + tab + '">' + panel + '</div>' +
-      '<div class="lp-past"><h3>Eventos anteriores</h3>' + (past.length ? '<ul>' + past.map(pastRow).join('') + '</ul>' : '<p class="lp-past__none">Aún no hay eventos finalizados.</p>') + '</div>' +
+      '<div class="lp-past"><div class="lp-tabs lp-tabs--solo"><h3>Eventos anteriores</h3></div>' + (past.length ? '<ul>' + past.map(pastRow).join('') + '</ul>' : '<p class="lp-past__none">Aún no hay eventos finalizados.</p>') + '</div>' +
       '<div class="lp-more"><a class="lp-cta lp-cta--dark lp-cta--lg" href="#/eventos?estado=todos">Ver todos los eventos</a></div>';
   }
   function wireHomeEvents() {
@@ -422,8 +430,10 @@
       wireTabs(box, pick);
       var p = box.querySelector('.lp-tpanel'); if (p && !REDUCE) p.classList.add('lp-tpanel--in');
       if (kb) refocusTab(box, id);
+      wireIr();
     }
-    wireTabs(box, pick);
+    function wireIr() { box.querySelectorAll('[data-go-tab]').forEach(function (b) { b.addEventListener('click', function () { pick(b.getAttribute('data-go-tab'), true); }); }); }
+    wireTabs(box, pick); wireIr();
   }
 
   function partnersHtml() {
@@ -463,10 +473,10 @@
 
   /* ── Listado /eventos (página propia, un solo panel) ────────────── */
   var LISTA_TABS = [
-    { id: 'en-competencia', label: 'En competencia', key: 'En curso', vacio: ['No hay eventos en competencia por ahora.', 'Cuando un evento inicie, lo verás aquí. Mientras tanto puedes revisar lo que viene.'] },
-    { id: 'proximos', label: 'Próximos', key: 'Próximo', vacio: ['No hay eventos próximos por ahora.', ''] },
-    { id: 'finalizados', label: 'Finalizados', key: 'Finalizado', vacio: ['Aún no hay eventos finalizados.', ''] },
-    { id: 'todos', label: 'Todos', key: null, vacio: ['No hay eventos disponibles por ahora.', ''] }
+    { id: 'todos', label: 'Todos', key: null, vacio: ['No hay eventos disponibles por ahora.', ''] },
+    { id: 'en-competencia', label: 'En curso', key: 'En curso', vacio: ['No hay eventos en competencia por ahora.', 'Cuando un evento inicie, lo verás aquí. Mientras tanto puedes revisar lo que viene.'] },
+    { id: 'proximos', label: 'Próximamente', key: 'Próximo', vacio: ['No hay eventos próximos por ahora.', ''] },
+    { id: 'finalizados', label: 'Finalizados', key: 'Finalizado', vacio: ['Aún no hay eventos finalizados.', ''] }
   ];
   var ALIAS_ESTADO = { 'en-curso': 'en-competencia', 'proxima': 'proximos', 'proximo': 'proximos', 'finalizado': 'finalizados' };
   function listaPorTab(g, t) {
@@ -477,9 +487,11 @@
     var items = LISTA_TABS.map(function (t) { return { id: t.id, label: t.label + ' (' + listaPorTab(g, t).length + ')' }; });
     var t = LISTA_TABS.filter(function (x) { return x.id === sel; })[0];
     var l = listaPorTab(g, t);
+    var clave = { todos: 'todos', 'en-competencia': 'live', proximos: 'soon' }[t.id];
+    var msg = clave ? estadoVacio(g, proximosEnHorizonte(g), clave, 'proximos') : t.vacio;
     return tabsHtml('lp-l', items, sel, 'Filtrar eventos por estado') +
       '<div class="lp-tpanel" role="tabpanel" id="lp-l-p" aria-labelledby="lp-l-t-' + sel + '">' +
-      (l.length ? '<div class="lp-cards">' + l.map(function (e) { return card(e, 'h3'); }).join('') + '</div>' : vacio(t.vacio[0], t.vacio[1])) + '</div>';
+      (l.length ? '<div class="lp-cards">' + l.map(function (e) { return card(e, 'h3'); }).join('') + '</div>' : vacio(msg[0], msg[1], msg[2])) + '</div>';
   }
   function listView(r) {
     var g = agrupar();
@@ -487,8 +499,8 @@
     var sel = LISTA_TABS.filter(function (t) { return t.id === want; })[0];
     if (!sel) {
       /* Sin ?estado= válido: primer grupo con contenido (en competencia, próximos, todos). */
-      sel = LISTA_TABS[0];
-      if (!g['En curso'].length) sel = g['Próximo'].length ? LISTA_TABS[1] : LISTA_TABS[3];
+      sel = LISTA_TABS[1];
+      if (!g['En curso'].length) sel = g['Próximo'].length ? LISTA_TABS[2] : LISTA_TABS[0];
     }
     var html = '<section class="lp-list"><div class="lp-wrap"><a class="lp-volver" href="#/" aria-label="Volver al inicio">← Volver</a>' +
       '<div class="lp-events__head lp-list__head"><span class="lp-eyebrow">No te pierdas los</span><h1 class="lp-h2">Eventos del Ciclo Olímpico</h1></div>' +
@@ -499,10 +511,13 @@
         history.replaceState(null, '', build('/eventos', { estado: id }));
         box.innerHTML = listaHtml(id);
         wireTabs(box, pick);
+        wireIr();
         var p = box.querySelector('.lp-tpanel'); if (p && !REDUCE) p.classList.add('lp-tpanel--in');
         if (kb) refocusTab(box, id);
       }
+      function wireIr() { box.querySelectorAll('[data-go-tab]').forEach(function (b) { b.addEventListener('click', function () { pick(b.getAttribute('data-go-tab'), true); }); }); }
       wireTabs(box, pick);
+      wireIr();
     } };
   }
 
@@ -517,9 +532,35 @@
       field('sp-nombre', 'Nombre', '<input id="sp-nombre" name="nombre" autocomplete="name" aria-describedby="sp-nombre-err">') +
       field('sp-correo', 'Correo', '<input id="sp-correo" name="correo" type="email" autocomplete="email" placeholder="nombre@correo.com" aria-describedby="sp-correo-err">') +
       field('sp-mensaje', '¿Qué pasó?', '<textarea id="sp-mensaje" name="mensaje" aria-describedby="sp-mensaje-err"></textarea>') +
-      field('sp-archivo', 'Adjuntar captura <small>(opcional)</small>', '<input id="sp-archivo" name="archivo" type="file" accept="image/*" aria-describedby="sp-archivo-err">') +
-      '<p class="lp-form__err" id="lp-form-err" role="alert" hidden>No pudimos enviarlo. Lo que escribiste sigue aquí; inténtalo de nuevo en unos minutos.</p>' +
+      field('sp-archivo', 'Adjuntar captura <small>(opcional)</small>', '<input id="sp-archivo" name="archivo" type="file" accept="image/jpeg,image/png" aria-describedby="sp-archivo-err">') +
+      '<input class="lp-hp" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">' +
+      '<p class="lp-form__err" id="lp-form-err" role="alert" hidden></p>' +
       '<button type="submit" class="lp-cta" id="lp-send">Enviar</button></form>';
+  }
+  /* Contrato DEP-477: POST {api}/api/create-ticket; HTTP 200 con state 200 = creado, state 500 = validación o error interno. */
+  var TICKETS = Object.assign({ api: '', projectId: 5, typeId: '' }, window.LANDING_TICKETS);
+  var MSG_LIMITE = 'Has enviado demasiadas solicitudes. Intenta de nuevo en unos minutos.';
+  var MSG_CAIDO = 'No pudimos enviar tu reporte. Intenta de nuevo en unos minutos.';
+  function enviarTicket(fd) {
+    if (!TICKETS.api) { /* Demo sin backend: 1.º caído, 2.º demasiados envíos, 3.º éxito. */
+      supportTries++;
+      return new Promise(function (ok) { setTimeout(function () {
+        var n = supportTries % 3;
+        ok(n === 1 ? { msg: MSG_CAIDO } : n === 2 ? { msg: MSG_LIMITE } : { ref: 'CO-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + String(Math.floor(Math.random() * 99999)).padStart(5, '0') });
+      }, 700); });
+    }
+    var ctl = window.AbortController ? new AbortController() : null, t = ctl && setTimeout(function () { ctl.abort(); }, 20000);
+    return fetch(TICKETS.api.replace(/\/$/, '') + '/api/create-ticket', { method: 'POST', headers: { Accept: 'application/json' }, body: fd, signal: ctl ? ctl.signal : undefined })
+      .then(function (res) {
+        if (t) clearTimeout(t);
+        if (res.status === 429) return res.json().then(function (j) { return { msg: j.message || MSG_LIMITE }; }, function () { return { msg: MSG_LIMITE }; });
+        if (!res.ok) return { msg: MSG_CAIDO };
+        return res.json().then(function (j) {
+          if (j && j.state === 200 && j.data && j.data.reference_number) return { ref: j.data.reference_number };
+          return { msg: (j && j.message) || MSG_CAIDO };
+        });
+      })
+      .catch(function () { if (t) clearTimeout(t); return { msg: MSG_CAIDO }; });
   }
   function wireForm(dlg) {
     var form = $('lp-form'); if (!form) return;
@@ -535,7 +576,7 @@
       },
       'sp-archivo': function (el) {
         var f = el.files && el.files[0];
-        return !f ? '' : !/^image\//.test(f.type) ? 'Adjunta una imagen.' : f.size > 2 * 1024 * 1024 ? 'La imagen pesa más de 2 MB.' : '';
+        return !f ? '' : !/^image\/(jpeg|png)$/.test(f.type) ? 'La captura debe ser una imagen JPG o PNG.' : f.size > 2 * 1024 * 1024 ? 'La imagen pesa más de 2 MB.' : '';
       }
     };
     function check(id) {
@@ -557,17 +598,23 @@
       if (primero) { $(primero).focus(); return; }
       var btn = $('lp-send'), correo = $('sp-correo').value.trim();
       btn.disabled = true; btn.textContent = 'Enviando…'; $('lp-form-err').hidden = true;
-      /* Simulación del real: el primer envío falla y el segundo pasa. */
-      setTimeout(function () {
-        supportTries++;
-        if (supportTries % 2 === 1) {
-          btn.disabled = false; btn.textContent = 'Reintentar'; $('lp-form-err').hidden = false; return;
+      var fd = new FormData();
+      fd.append('project_id', TICKETS.projectId); fd.append('type_id', TICKETS.typeId || '');
+      fd.append('first_names', $('sp-nombre').value.trim()); fd.append('email', correo);
+      fd.append('description', $('sp-mensaje').value.trim()); fd.append('website', form.elements.website.value);
+      var f = $('sp-archivo').files[0]; if (f) fd.append('attachment', f);
+      enviarTicket(fd).then(function (r) {
+        if (r.ref) {
+          $('lp-dlg-box').innerHTML = '<div class="lp-form__ok" role="status"><i>' + IC.check + '</i><h2 id="lp-dlg-t">Recibimos tu reporte</h2>' +
+            '<p>Enviamos la confirmación a <b>' + esc(correo) + '</b>.</p><p class="lp-form__case">Número de caso <b>' + esc(r.ref) + '</b></p>' +
+            '<button type="button" class="lp-cta" data-dlg-close>Cerrar</button></div>';
+          var c = dlg.querySelector('[data-dlg-close].lp-cta'); if (c) c.focus();
+          return;
         }
-        $('lp-dlg-box').innerHTML = '<div class="lp-form__ok" role="status"><i>' + IC.check + '</i><h2 id="lp-dlg-t">Recibimos tu reporte</h2>' +
-          '<p>Enviamos la confirmación a <b>' + esc(correo) + '</b>.</p><p class="lp-form__case">Número de caso <b>COC-' + String(100000 + Math.floor(Math.random() * 900000)) + '</b></p>' +
-          '<button type="button" class="lp-cta" data-dlg-close>Cerrar</button></div>';
-        var c = dlg.querySelector('[data-dlg-close].lp-cta'); if (c) c.focus();
-      }, 700);
+        /* Cualquier fallo conserva lo escrito y deja reintentar. */
+        btn.disabled = false; btn.textContent = 'Reintentar';
+        $('lp-form-err').textContent = r.msg; $('lp-form-err').hidden = false;
+      });
     });
   }
   function wireSupport() {
@@ -591,11 +638,17 @@
   var TABS = {
     'calendario-resultados': 'Calendario y resultados',
     'medalleria': 'Medallería',
+    'boletines': 'Boletines técnicos',
     'deportes': 'Deportes',
     'informacion': 'Información'
   };
   /* Información primero y por defecto en todo evento; Deportes le sigue. */
-  var ORDEN_TABS = ['informacion', 'deportes', 'calendario-resultados', 'medalleria'];
+  var ORDEN_TABS = ['informacion', 'deportes', 'calendario-resultados', 'medalleria', 'boletines'];
+  /* Revisión COC (21 y 22): finalizado abre por resultados; en curso, por el calendario. */
+  var ORDEN_POR_ESTADO = {
+    'Finalizado': ['informacion', 'medalleria', 'deportes', 'calendario-resultados', 'boletines'],
+    'En curso': ['informacion', 'calendario-resultados', 'deportes', 'medalleria', 'boletines']
+  };
   /* DC-043: un evento Próximo aún no tiene resultados, así que la pestaña solo dice «Calendario». */
   function etiquetaCalendario(estado) { return estado === 'Próximo' ? 'Calendario' : TABS['calendario-resultados']; }
 
@@ -646,7 +699,7 @@
     }
     var ev = data.evento, estado = data.estado;
     /* Medallería solo existe si ya hay medallas (un evento Próximo no tiene). */
-    var orden = ORDEN_TABS.filter(function (t) { return t !== 'medalleria' || data.medallero().length > 0; });
+    var orden = (ORDEN_POR_ESTADO[estado] || ORDEN_TABS).filter(function (t) { return t === 'boletines' ? OLC.boletines(data).length > 0 : (t !== 'medalleria' || data.medallero().length > 0); });
     var tab = orden.indexOf(r.params.tab) >= 0 ? r.params.tab : orden[0];
     var ui = uiStore[ev.code] || (uiStore[ev.code] = {});
     var nav = orden.map(function (t) {

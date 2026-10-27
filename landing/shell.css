@@ -253,7 +253,10 @@ body.lp-lock { overflow: hidden; }
 .lp-nada__d { max-width: 440px; font-size: 14px; color: var(--lp-muted); }
 
 .lp-past { margin-top: 64px; }
-.lp-past h3 { padding-bottom: 12px; border-bottom: 2px solid var(--lp-ink); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: var(--lp-eyebrow); color: var(--lp-ink); }
+/* Una sola pestaña, seleccionada y a la izquierda: mismo trazo que .lp-tabs button (DC-160/161). */
+.lp-tabs--solo { justify-content: flex-start; margin-top: 0; }
+.lp-tabs--solo h3 { margin-bottom: -1px; min-height: 52px; padding: 14px 15px; border-bottom: 5px solid var(--lp-tab-indicator); font-size: 18px; font-weight: 700; line-height: 1; color: var(--lp-ink-soft); }
+@media (min-width: 640px) { .lp-tabs--solo h3 { padding: 20px 30px; font-size: 20px; } }
 .lp-past ul { border-bottom: 1px solid var(--lp-border); }
 .lp-past__row { display: flex; flex-direction: column; gap: 16px; padding: 16px 0; border-top: 1px solid var(--lp-border); }
 .lp-past__row:first-child { border-top: 0; }
@@ -478,3 +481,7 @@ span.lp-sxi { width: auto; justify-content: flex-start; height: 22px; gap: 4px; 
 @media (prefers-reduced-motion: reduce) { .lp-fab, .lp-fab.is-on { transition: none; } }
 
 .lp-panel[hidden] { display: none; }
+.lp-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+.lp-nada__a { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px 20px; margin-top: 4px; }
+.lp-nada__l { font-weight: 700; color: var(--lp-ink-soft); text-decoration: underline; }

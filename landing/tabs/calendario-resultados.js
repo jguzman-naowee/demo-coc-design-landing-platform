@@ -18,25 +18,7 @@
   };
   LPT.svg = function (name, cls) { return '<svg class="lp-i ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (P[name] || '') + '</svg>'; };
 
-  var SPORT = {
-    atletismo: '<circle cx="14" cy="5" r="2"/><path d="M13 8l-3 4 3 2 1 5M10 12l-4 1M13 8l4 3 3-1M14 14l4 5"/>',
-    natacion: '<circle cx="16" cy="6" r="2"/><path d="M4 13l5-3 4 2 2-2M3 17c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1 1.5 1 3 1M3 21c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1"/>',
-    ciclismo: '<circle cx="6" cy="16" r="3.5"/><circle cx="18" cy="16" r="3.5"/><path d="M6 16l4-8h5l3 8M10 8l3 8M9 6h3"/>',
-    pesas: '<path d="M3 10v4M6 8v8M18 8v8M21 10v4M6 12h12"/>',
-    baloncesto: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5v17M6 6c3 3 3 9 0 12M18 6c-3 3-3 9 0 12"/>',
-    voleibol: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5c-1 4 0 7 4 9.5M5 8c4 0 7 2 9 6M20 14c-4-2-8-1-10 3"/>',
-    balonmano: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7l4 3-1.5 5h-5L8 10z"/>',
-    'futbol-sala': '<circle cx="12" cy="12" r="8.5"/><path d="M12 8l3.5 2.5-1.3 4h-4.4l-1.3-4zM12 3.5V8M15.5 10.5l4.5-1.5M14.2 14.500l2.800 3.800M9.800 14.500L7 18.300M8.500 10.500L4 9"/>',
-    boxeo: '<path d="M7 11V8a4 4 0 018 0v1h2a2 2 0 012 2v3a6 6 0 01-6 6h-1a5 5 0 01-5-5z"/><path d="M7 14h8"/>',
-    'tenis-mesa': '<circle cx="10" cy="10" r="6"/><path d="M14.500 14.500L20 20M18 7a1.500 1.500 0 110 .1"/>',
-    gimnasia: '<circle cx="12" cy="4.500" r="1.800"/><path d="M4 8h16M12 8v6M9 21l3-7 3 7"/>',
-    judo: '<circle cx="8" cy="5" r="2"/><circle cx="17" cy="7" r="2"/><path d="M8 8v5l-3 6M8 13l4 2 5-6M17 9l2 5M12 15l-1 5"/>',
-    lucha: '<circle cx="8" cy="5" r="2"/><circle cx="16" cy="5" r="2"/><path d="M8 8l2 5-3 6M16 8l-2 5 3 6M10 13h4"/>',
-    taekwondo: '<circle cx="9" cy="5" r="2"/><path d="M9 8v6l-3 6M9 14l4 5M9 10l9-3M9 10l-4 2"/>'
-  };
-  LPT.sportIcon = function (code) {
-    return '<svg class="lp-i" viewBox="0 0 24 24" aria-hidden="true">' + (SPORT[code] || '<circle cx="12" cy="9" r="5"/><path d="M9 13l-2 8 5-3 5 3-2-8"/>') + '</svg>';
-  };
+  LPT.sportIcon = function (code) { return OLC.iconoDeporte(code, 'lp-i'); };
 
   LPT.SEXOS = [['', 'Todos', ''], ['F', 'Femenino', 'f'], ['M', 'Masculino', ''], ['X', 'Mixto', 'x']];
   /* Icono de género (♀ ♂ mixto) y tag con icono + nombre: una sola fuente para Deportes y Calendario. */
@@ -64,6 +46,12 @@
   };
 
   /* Bandera sola para filas de resultado; sin imagen (o si falla) queda el código ISO en texto. */
+  /* Puesto de la lista: medalla chica con el número para 1.º–3.º premiados; el resto, círculo gris */
+  LPT.pos = function (n, medalla, sr) {
+    var m = medalla && n >= 1 && n <= 3;
+    if (!m) return '<span class="lp-pos">' + (sr || '') + n + '</span>';
+    return '<span class="lp-pos-m">' + (sr || '') + OLC.medalla(['gold', 'silver', 'bronze'][n - 1], n, 34) + '</span>';
+  };
   LPT.flag = function (iso, nombre) {
     if (!iso) return '';
     var b = OLC.bandera(iso, 20), c = esc(String(iso).toUpperCase());
@@ -158,21 +146,21 @@
     var prev = null;
     filas.forEach(function (f) {
       if (f.tipo === 'separador') { prev = f; h += '<tr class="lp-sep"><td colspan="' + cols + '"><span aria-hidden="true">···</span><span class="lp-sr">Puestos intermedios omitidos</span></td></tr>'; return; }
-      h += '<tr' + (f.colombiano ? ' class="lp-co' + (prev ? ' lp-out' : '') + '"' : '') + '><td class="lp-c1"><span class="lp-pos lp-p' + (f.puesto <= 3 ? f.puesto : '') + '">' + f.puesto + '</span></td>' +
+      h += '<tr' + (f.colombiano ? ' class="lp-co' + (prev ? ' lp-out' : '') + '"' : '') + '><td class="lp-c1">' + LPT.pos(f.puesto, f.premia !== false) + '</td>' +
         '<td><div class="lp-dg">' + LPT.flag(f.pais, f.paisNombre) + '<span class="lp-dl">' + esc(f.deportista) + '</span></div></td>' +
         (conMarca ? '<td class="lp-r lp-mk">' + (f.marca != null ? esc(f.marca) : '—') + '</td>' : '') + '</tr>';
     });
     if (p.estado === 'En vivo') h += '<tr class="lp-part"><td colspan="' + cols + '">Resultado parcial · la clasificación puede cambiar hasta el cierre de la prueba</td></tr>';
-    return h + '</tbody></table>';
+    return h + '</tbody></table>' + (conMarca ? '<p class="lp-mk-note">Mejor marca registrada en el evento</p>' : '');
   }
 
   /* Medalla de Colombia en la fila colapsada: solo el icono, la mejor de los colombianos de la fase. */
   function medallaFase(p) {
     var orden = { Oro: 1, Plata: 2, Bronce: 3 }, m = '';
-    p.colombianos.forEach(function (c) { if (orden[c.medalla] && (!m || orden[c.medalla] < orden[m])) m = c.medalla; });
+    p.colombianos.forEach(function (c) { if (c.premia !== false && orden[c.medalla] && (!m || orden[c.medalla] < orden[m])) m = c.medalla; });
     if (!m) return '';
     var t = 'Medalla de ' + m.toLowerCase() + ' para Colombia';
-    return '<span class="lp-mdi lp-mdi-' + m.toLowerCase() + '" role="img" title="' + t + '" aria-label="' + t + '">' + LPT.svg('medal') + '</span>';
+    return '<span class="lp-mdi" role="img" title="' + t + '" aria-label="' + t + '">' + OLC.medalla({ oro: 'gold', plata: 'silver', bronce: 'bronze' }[m.toLowerCase()], 'none', 30) + '</span>';
   }
 
   /* Cuerpo de una fase: se arma al expandir (data-lazy) para no pintar miles de tablas en la carga. */
@@ -195,7 +183,7 @@
       return '<div class="lp-rr lp-rr-pend"><div class="lp-rr-hd">' + identidadPrueba(p) +
         '<div class="lp-rr-ac">' + LPT.estadoBadge(p.estado, true) + '</div></div></div>';
     }
-    var abierta = p.id in ui.p ? ui.p[p.id] : (p.estado === 'En vivo' || p.participa);
+    var abierta = p.id in ui.p ? ui.p[p.id] : false; /* Revisión COC (2): el listado carga colapsado. */
     return '<div class="lp-rr"><div class="lp-rr-hd">' +
       '<button type="button" class="lp-tgb" data-p="' + esc(p.id) + '" aria-expanded="' + abierta + '" aria-controls="lp-b-' + esc(p.id) + '">' +
       identidadPrueba(p) +
@@ -291,13 +279,13 @@
     return data.deportes.map(function (d) { return { d: d, rows: rows.filter(function (p) { return p.deporte === d.codigo; }) }; }).filter(function (g) { return g.rows.length; }).map(function (g) {
       g.rows.sort(function (a, b) { return a.nombre.localeCompare(b.nombre, 'es', { numeric: true }) || LPT.ordSexo[a.sexo] - LPT.ordSexo[b.sexo]; });
       g.iso = iso; g.key = iso + '|' + g.d.codigo; g.id = 'lp-g-' + iso + '-' + g.d.codigo;
-      g.open = g.key in ui.g ? ui.g[g.key] : g.rows.some(function (p) { return p.estado === 'En vivo' || p.participa; });
+      g.open = g.key in ui.g ? ui.g[g.key] : false; /* Revisión COC: todo carga colapsado. */
       return g;
     });
   }
 
-  var IC_ALL = { exp: 'M5 4.5l5 4 5-4M5 11.5l5 4 5-4', con: 'M5 8.5l5-4 5 4M5 15.5l5-4 5 4', mas: 'M4.5 10h.01M10 10h.01M15.5 10h.01' };
-  Object.keys(IC_ALL).forEach(function (k) { IC_ALL[k] = '<svg class="lp-i" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><path d="' + IC_ALL[k] + '" fill="none" stroke="currentColor" stroke-width="' + (k === 'mas' ? 3 : 2) + '" stroke-linecap="round" stroke-linejoin="round"/></svg>'; });
+  var IC_ALL = { exp: 'M5 4.5l5 4 5-4M5 11.5l5 4 5-4', con: 'M5 8.5l5-4 5 4M5 15.5l5-4 5 4' };
+  Object.keys(IC_ALL).forEach(function (k) { IC_ALL[k] = '<svg class="lp-i" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><path d="' + IC_ALL[k] + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; });
 
   function grupoHtml(g, ctx, ui, tag, comentar) {
     var cnt = { Finalizado: 0, 'En vivo': 0, Programado: 0 };
@@ -320,18 +308,21 @@
       /* URL prueba=<id>: el calendario queda de fondo, en la jornada de la prueba, y el modal se abre una vez por URL. */
       var one = pr.prueba && data.pruebas.filter(function (p) { return p.id === pr.prueba; })[0];
       if (one && !pr.dia) { pr = {}; Object.keys(ctx.params).forEach(function (k) { pr[k] = ctx.params[k]; }); pr.dia = one.fecha; }
-      var ex = LPT.sexosDe(data);
-      var sexo = ex.length > 1 && ex.indexOf(pr.sexo) >= 0 ? pr.sexo : '';
       var hayCol = data.colombia.participa > 0;
       var solo = false; /* sin interruptor: los datos ya traen solo pruebas con Colombia (OLC.soloColombia) */
       var depSel = data.deportes.some(function (d) { return d.codigo === pr.deporte; }) ? pr.deporte : '';
 
-      /* opciones de selects: solo las que existen (acotadas por deporte); un select con una única opción no se pinta */
-      var enDep = data.pruebas.filter(function (p) { return !depSel || p.deporte === depSel; });
-      var nombres = [], rondas = [];
-      enDep.forEach(function (p) { if (nombres.indexOf(p.nombre) < 0) nombres.push(p.nombre); if (rondas.indexOf(p.ronda) < 0) rondas.push(p.ronda); });
-      nombres.sort(function (a, b) { return a.localeCompare(b, 'es', { numeric: true }); });
+      /* Filtros en cascada (Deporte → Prueba → Género → Ronda): cada lista sale de lo elegido antes y lo que deja de existir se limpia solo. */
+      var uniq = function (arr, f) { return arr.reduce(function (o, p) { var v = f(p); if (v && o.indexOf(v) < 0) o.push(v); return o; }, []); };
+      var P1 = data.pruebas.filter(function (p) { return !depSel || p.deporte === depSel; });
+      var nombres = uniq(P1, function (p) { return p.nombre; }).sort(function (a, b) { return a.localeCompare(b, 'es', { numeric: true }); });
       if (nombres.length < 2 || nombres.indexOf(ui.prueba) < 0) ui.prueba = '';
+      var P2 = P1.filter(function (p) { return !ui.prueba || p.nombre === ui.prueba; });
+      var sexosOp = ['F', 'M', 'X'].filter(function (k) { return P2.some(function (p) { return p.sexo === k; }); });
+      var sexo = sexosOp.length > 1 && sexosOp.indexOf(pr.sexo) >= 0 ? pr.sexo : '';
+      if (pr.sexo && !sexo) { try { history.replaceState(null, '', ctx.href({ sexo: '' })); } catch (e) { /* sin historial: queda el param, la vista ya lo ignora */ } }
+      var P3 = P2.filter(function (p) { return !sexo || p.sexo === sexo; });
+      var rondas = uniq(P3, function (p) { return p.ronda; });
       if (rondas.length < 2 || rondas.indexOf(ui.ronda) < 0) ui.ronda = '';
 
       var base = data.pruebas.filter(function (p) {
@@ -355,7 +346,7 @@
       var sw = ''; /* sin interruptor «Solo pruebas con Colombianos»: solo se registran pruebas con Colombia */
       var fl = sw + selectField('lp-f-dep', 'Deporte', depSel, data.deportes.map(function (d) { return [d.codigo, d.nombre]; }), 'Todos los deportes') +
         selectField('lp-f-pru', 'Prueba', ui.prueba, nombres.map(function (n) { return [n, n]; }), 'Todas las pruebas') +
-        selectField('lp-f-sex', 'Género', sexo, LPT.sexosDe(data).map(function (k) { return [k, LPT.SEXOS.filter(function (o) { return o[0] === k; })[0][1]]; }), 'Todos') +
+        selectField('lp-f-sex', 'Género', sexo, sexosOp.map(function (k) { return [k, LPT.SEXOS.filter(function (o) { return o[0] === k; })[0][1]]; }), 'Todos') +
         selectField('lp-f-ron', 'Ronda', ui.ronda, rondas.map(function (n) { return [n, n]; }), 'Todas las rondas');
       /* DC-101: deshabilitado (no oculto) sin filtros, para que la tarjeta no cambie de alto. */
       var hayFiltro = !!(pr.deporte || pr.sexo || depSel || sexo || ui.prueba || ui.ronda);
@@ -369,8 +360,7 @@
         var titulo = OLC.fechaLarga(dia);
         var tit = '<div class="lp-day-t"><h2 id="lp-h-dia">' + esc(titulo) + '</h2>' + badgeDia(dia) + '</div>';
         h += '<div class="lp-day-hd">' + tit + '<div class="lp-day-r">' +
-          '<div class="lp-all"><button type="button" class="lp-all-b" id="lp-all-b" aria-haspopup="menu" aria-expanded="false" aria-controls="lp-all-m" aria-label="Más acciones" title="Más acciones">' + IC_ALL.mas + '</button>' +
-          '<div class="lp-all-m" id="lp-all-m" role="menu" aria-label="Pruebas de la jornada" hidden><button type="button" role="menuitem" data-all="1">' + IC_ALL.exp + '<span>Expandir todo</span></button><button type="button" role="menuitem" data-all="0">' + IC_ALL.con + '<span>Contraer todo</span></button></div></div></div></div>';
+          '<div class="lp-all" role="group" aria-label="Pruebas de la jornada"><button type="button" class="lp-all-b" data-all="1" aria-label="Expandir todo">' + IC_ALL.exp + '<span>Expandir todo</span></button><button type="button" class="lp-all-b" data-all="0" aria-label="Contraer todo">' + IC_ALL.con + '<span>Contraer todo</span></button></div></div></div>';
         var comentar = (delDia.filter(function (p) { return p.estado === 'En vivo' && hayResultado(p); })[0] || delDia.filter(function (p) { return p.estado === 'Finalizado' && hayResultado(p); })[0] || {}).id;
         if (!delDia.length) {
           h += '<div class="lp-empty"><p>Colombia no compite este día.</p></div>';
@@ -499,52 +489,11 @@
         if (b.hasAttribute('data-g')) { ui.g[b.getAttribute('data-g')] = o; setG(b, o); }
         else setP(b, o);
       });
-      var mb = el.querySelector('#lp-all-b'), mm = el.querySelector('#lp-all-m');
-      function mItems() { return Array.prototype.slice.call(mm.querySelectorAll('[role=menuitem]')); }
-      function mPos() {
-        var r = mb.getBoundingClientRect(), w = mm.offsetWidth, vw = document.documentElement.clientWidth;
-        var h = mm.offsetHeight, abajo = r.bottom + 6, arriba = r.top - 6 - h;
-        /* DC-051: pegado al icono; si abajo no cabe se voltea arriba, y si el icono sale de la vista se cierra. */
-        if (r.bottom < 0 || r.top > window.innerHeight) return mCerrar();
-        mm.style.top = (abajo + h <= window.innerHeight - 8 ? abajo : arriba >= 8 ? arriba : Math.max(8, window.innerHeight - h - 8)) + 'px';
-        mm.style.left = Math.max(8, Math.min(r.right - w, vw - w - 8)) + 'px';
-      }
-      function mCerrar(foco) {
-        if (!mm || mm.hidden) return;
-        mm.hidden = true; mb.setAttribute('aria-expanded', 'false');
-        document.removeEventListener('mousedown', mFuera, true); document.removeEventListener('keydown', mTecla, true);
-        window.removeEventListener('resize', mPos); window.removeEventListener('scroll', mPos, true);
-        if (foco === true) mb.focus();
-      }
-      function mFuera(e) { if (!el.contains(mb)) return mCerrar(); if (!mm.contains(e.target) && !mb.contains(e.target)) mCerrar(); }
-      function mTecla(e) {
-        if (!el.contains(mb)) return mCerrar();
-        var it = mItems(), i = it.indexOf(document.activeElement);
-        if (e.key === 'Escape') { e.preventDefault(); mCerrar(true); }
-        else if (e.key === 'ArrowDown') { e.preventDefault(); it[(i + 1) % it.length].focus(); }
-        else if (e.key === 'ArrowUp') { e.preventDefault(); it[(i <= 0 ? it.length : i) - 1].focus(); }
-        else if (e.key === 'Home') { e.preventDefault(); it[0].focus(); }
-        else if (e.key === 'End') { e.preventDefault(); it[it.length - 1].focus(); }
-        else if (e.key === 'Tab') mCerrar();
-      }
-      function mAbrir(foco) {
-        mm.hidden = false; mb.setAttribute('aria-expanded', 'true'); mPos();
-        document.addEventListener('mousedown', mFuera, true); document.addEventListener('keydown', mTecla, true);
-        window.addEventListener('resize', mPos); window.addEventListener('scroll', mPos, true);
-        if (foco) mItems()[foco === 'ultimo' ? mItems().length - 1 : 0].focus();
-      }
-      if (mb && mm) {
-        mb.addEventListener('click', function () { if (mm.hidden) mAbrir(); else mCerrar(true); });
-        mb.addEventListener('keydown', function (e) {
-          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (mm.hidden) mAbrir(e.key === 'ArrowUp' ? 'ultimo' : 'primero'); }
-        });
-      }
       el.querySelectorAll('[data-all]').forEach(function (b) {
         b.addEventListener('click', function () {
           var o = b.getAttribute('data-all') === '1';
           el.querySelectorAll('[data-g]').forEach(function (g) { ui.g[g.getAttribute('data-g')] = o; setG(g, o); });
           el.querySelectorAll('[data-p]').forEach(function (p) { setP(p, o); });
-          mCerrar(true);
         });
       });
 
