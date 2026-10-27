@@ -45,6 +45,8 @@
     <button type="button" class="tt-ib" id="close" aria-label="Cerrar">×</button></span></div>
   <div class="tt-grp">Prototipo</div>
   <div class="tt-seg" role="group" aria-label="Prototipo" id="segFront"></div>
+  <div class="tt-grp">Escenario de la landing</div>
+  <div class="tt-seg" role="group" aria-label="Escenario" id="segEsc"></div>
   <div class="tt-grp">Momento del evento</div>
   <div class="tt-seg" role="group" aria-label="Momento del evento" id="segEvt"></div>
   <p class="tt-note">Al cambiar de prototipo se conserva el evento, la pestaña y los filtros.</p>
@@ -56,7 +58,8 @@
   var FRONTS = { platform: { label: 'Plataforma', url: 'platform/index.html', home: '#/dashboards' },
                  landing:  { label: 'Landing',    url: 'landing/index.html',  home: '#/' } };
   var EVENTOS = [['Finalizado', 'copa-coc-cali-2026'], ['En curso', 'jja-2026'], ['Próximo', 'intercolegiados-2026']];
-  var q = new URLSearchParams(location.search);
+  var ESC = [['', 'Habitual'], ['2026-10-05', 'Sin eventos en curso']];
+  var q = new URLSearchParams(location.search), hoy = /^\d{4}-\d{2}-\d{2}$/.test(q.get('hoy') || '') ? q.get('hoy') : '';
   var front = FRONTS[q.get('f')] ? q.get('f') : 'platform';
   var hash = location.hash || FRONTS[front].home;
   var frame = document.getElementById('stage'), panel = document.getElementById('panel'), launch = document.getElementById('launch');
@@ -70,14 +73,17 @@
     document.getElementById('segEvt').innerHTML = EVENTOS.map(function (e) {
       var on = e[1] === codigo();
       return '<button type="button" data-e="' + e[1] + '" class="' + (on ? 'is-active' : '') + '" aria-pressed="' + on + '">' + esc(e[0]) + '</button>'; }).join('');
-    document.getElementById('nueva').href = FRONTS[front].url + hash;
+    document.getElementById('nueva').href = url();
+    document.getElementById('segEsc').innerHTML = ESC.map(function (e) { var on = e[0] === hoy; return '<button type="button" data-h="' + e[0] + '" class="' + (on ? 'is-active' : '') + '" aria-pressed="' + on + '">' + e[1] + '</button>'; }).join('');
     document.title = FRONTS[front].label + ' · Demo Eventos Ciclo Olímpico';
-    try { history.replaceState(null, '', '?f=' + front + hash); } catch (e) {}
+    try { history.replaceState(null, '', '?f=' + front + (hoy ? '&hoy=' + hoy : '') + hash); } catch (e) {}
   }
-  function cargar() { frame.src = FRONTS[front].url + hash; pintar(); }
+  function url() { return FRONTS[front].url + (hoy ? '?hoy=' + hoy : '') + hash; }
+  function cargar() { frame.src = url(); pintar(); }
 
   panel.addEventListener('click', function (e) {
-    var f = e.target.closest('[data-f]'), v = e.target.closest('[data-e]');
+    var f = e.target.closest('[data-f]'), v = e.target.closest('[data-e]'), h = e.target.closest('[data-h]');
+    if (h) { hoy = h.dataset.h; cargar(); }
     if (f && f.dataset.f !== front) {
       front = f.dataset.f;
       if (!codigo()) hash = front === 'landing' ? '#/' : '#/eventos';

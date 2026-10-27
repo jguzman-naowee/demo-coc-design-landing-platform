@@ -151,6 +151,15 @@ Cuatro ítems (`Dashboards`, `Reportes`, `Gestión deportiva`, `Gestión de usua
 - Español formal. Sin emojis; iconos SVG inline (o `nwt-icon` / fuente `icons.css` en la plataforma).
 - Verifica visualmente: sirve con `python3 -m http.server` en un puerto propio y toma capturas con Chrome headless (`"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --screenshot=/tmp/x.png --window-size=1440,1800 "http://localhost:PUERTO/..."`), léelas con la herramienta Read y corrige lo roto. No commits, no push, no instalar dependencias globales; trabaja SOLO dentro de tu carpeta asignada.
 
+## Revisión COC (oct 2026): parámetros y piezas añadidas
+
+- `?hoy=AAAA-MM-DD` simula la fecha (`OLC.HOY`); `demo.html` lo expone como «Escenario de la landing» (p. ej. 2026-10-05 = cero eventos en curso).
+- `?perfil=gestor|comite` (plataforma, se recuerda en `localStorage`): el Gestor Comité ve Dashboard y Eventos (todos), sin Ciudadanía ni Organismos ni «Carga masiva».
+- Orden de pestañas por estado: Finalizado = Información · Medallería · Deportes · (Nominal) · Calendario y resultados · Boletines; En curso = Información · Calendario y resultados · Deportes · (Nominal) · Medallería · Boletines.
+- Medalla pintada solo en rondas que premian (`OLC` `rondaPremia`, marca `premia` en filas); el dato queda intacto para el medallero.
+- `shared/sport-icons.js` (íconos por código real), `shared/boletines.js` (CSV/PDF al vuelo), `platform/tabs/carga-masiva.js` (demo, no persiste).
+- El dashboard filtra por periodo Desde – Hasta (un año por defecto) en lugar del selector de años.
+
 ## Decisiones abiertas (pendientes de Jorge)
 1. **Medallería real solo-Colombia.** La web real muestra solo las medallas de Colombia por deporte (`OLC_REAL.medallasColombiaPorDeporte`, totales oficiales 69 oro / 61 plata / 62 bronce), no un ranking de países. Hoy los prototipos pintan el medallero por país (parcial: 8 de 14 jornadas) con Colombia fijada. `datosDe().colombia.porDeporte` ya existe, sin uso en la UI. Sin decisión no se cambia la semántica.
 2. **Titular de portada «deporte colombiano».** El landing dice «El punto de encuentro del deporte colombiano» (`landing/app.js`), mientras los eventos son internacionales; falta confirmar el copy.
