@@ -6648,7 +6648,11 @@ button:focus-visible,a:focus-visible,select:focus-visible,[tabindex="0"]:focus-v
 
 /* Filtros */
 .co-filters{align-items:flex-start;overflow:visible}
-.yr-field{width:200px}
+.yr-field{width:260px}
+.yr-range{display:flex;gap:8px}
+.yr-sel{display:flex;flex:1;align-items:center;gap:6px;min-height:40px;padding:0 10px;border:1px solid var(--naowee-color-interactive-border-default,#c5c9d1);border-radius:8px;font-size:14px}
+.yr-sel span{color:var(--naowee-color-text-secondary,#5b6270)}
+.yr-sel select{flex:1;min-width:0;border:0;background:transparent;font:inherit;color:inherit}
 .yr-box{justify-content:space-between;width:100%;text-align:left;font:inherit;font-size:14px}
 .yr-menu{padding:6px}
 .yr-opt{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 10px;border-radius:8px;cursor:pointer;font-size:14px}
@@ -7229,6 +7233,8 @@ html.is-embed .main, html.is-embed .page { overflow: visible; }
 .quad-tip{position:absolute;z-index:3;max-width:240px;padding:8px 12px;border-radius:8px;background:rgba(40,40,52,.95);color:#fff;font-size:12px;line-height:17px;pointer-events:none}
 .quad-tip b{display:block;margin-bottom:2px}
 .vd{padding-top:24px} /* DC-142 */
+/* DC-155: tabla compacta del Potencial; celdas de 48 px en vez de las de 64 px del resto */
+.pdm-t td,.pdm-t th{height:48px;max-height:48px;padding-top:0;padding-bottom:0}
 .vd .co-seg{align-self:center} /* DC-138: contenido centrado */
 .vd .verdict h4,.vd .verdict>p{justify-content:center;text-align:center}
 .pdm-k{min-height:92px} /* DC-139: valor grande abajo a la derecha */
@@ -7306,11 +7312,10 @@ html.is-embed .main, html.is-embed .page { overflow: visible; }
 
       <div class="naowee-card naowee-card--outline naowee-card--flush filter-bar co-filters">
         <div class="filter-field yr-field">
-          <span class="filter-label" id="yrLbl">Años</span>
-          <div class="ev-picker" id="yrPicker">
-            <button type="button" class="naowee-dropdown__trigger ev-box yr-box" id="yrBox" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="yrLbl yrBox"><span id="yrSum"></span>
-              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>
-            <div class="ev-menu yr-menu" id="yrMenu" role="listbox" aria-multiselectable="true" aria-labelledby="yrLbl" hidden></div>
+          <span class="filter-label" id="yrLbl">Periodo</span>
+          <div class="yr-range" role="group" aria-labelledby="yrLbl">
+            <label class="yr-sel"><span>Desde</span><select id="yrFrom"></select></label>
+            <label class="yr-sel"><span>Hasta</span><select id="yrTo"></select></label>
           </div>
         </div>
         <div class="filter-field ev-field">
@@ -7559,7 +7564,7 @@ const medalDots = (g, s, b) => `<span class="kpi-medals"><span><i class="medal-d
 const ROLES = {admin:{user:'Laura Méndez', label:'Administradora de eventos'}, comite:{user:'Andrés Villamil', label:'Comité Olímpico'}};
 const YEARS = [...new Set(EVENTS.map(e => e.year))].sort();
 // DC-087: el dashboard queda fijo en la vista del Comité Olímpico (solo ciclo olímpico)
-const state = {role:'comite', years:new Set(YEARS), selected:new Set(EVENTS.filter(e => e.cycle).map(e => e.code)), query:'', data:'events'};
+const state = {role:'comite', years:new Set([YEARS[YEARS.length - 1]]), selected:new Set(EVENTS.filter(e => e.cycle && e.year === YEARS[YEARS.length - 1]).map(e => e.code)), query:'', data:'events'};
 state.tab = 'resumen'; state.metric = 'share'; state.sort = 'const'; state.medal = 'T'; let LAST_A = null;
 const visibleEvents = () => EVENTS.filter(e => state.role === 'admin' || e.cycle);
 const rangeEvents = () => visibleEvents().filter(e => state.years.has(e.year));
@@ -7921,12 +7926,12 @@ function renderAthletes(A){
   A.sel.slice(0, -1).forEach(e => A.medalistsByEvent.get(e.code).forEach(id => earlier.add(id)));
   const fresh = [...lastMed].filter(id => !earlier.has(id)).length;
   // Por total de medallas primero: ordenar por nº de eventos dejaba arriba solo a quienes medallaron en todos (DC-104)
-  ATH.list = recurrent.sort((a, b) => (b.g + b.s + b.b) - (a.g + a.s + a.b) || b.events.size - a.events.size || b.g - a.g || a.p.name.localeCompare(b.p.name, 'es'));
+  ATH.list = recurrent.sort((a, b) => b.g - a.g || b.s - a.s || b.b - a.b || b.events.size - a.events.size || a.p.name.localeCompare(b.p.name, 'es'));
   ATH.sel = A.sel; ATH.page = 1;
   const one = A.sel.length < 2, pc = (a, b) => `<small class="ath-kpi__b">${pct(a, b)} %</small>`;
   const ak = (ic, tone, l, how, h, v, b = '') => `<article class="ath-kpi"><span class="co-kpi__ic co-kpi__ic--${tone}" aria-hidden="true">${ICON[ic]}</span><span class="ath-kpi__l">${l}${info(how)}</span><span class="ath-kpi__h">${h}</span><div class="ath-kpi__v">${v}${b}</div></article>`;
   $('athKpis').innerHTML = `<div class="ath-kpis">
-      ${ak('users', 'informative', 'Medallistas únicos', 'Deportistas distintos con al menos una medalla en los eventos seleccionados.', `${nf(A.sel.length)} ${A.sel.length === 1 ? 'evento' : 'eventos'}`, nf(meds.length))}
+      ${ak('users', 'informative', 'Medallistas', 'Deportistas distintos con al menos una medalla en los eventos seleccionados.', `${nf(A.sel.length)} ${A.sel.length === 1 ? 'evento' : 'eventos'}`, nf(meds.length))}
       ${ak('medal', 'positive', 'Recurrentes', 'Medallistas que ganaron en al menos 2 eventos distintos.', one ? 'Elige 2 eventos' : '2 o más eventos', one ? '—' : nf(recurrent.length), one ? '' : pc(recurrent.length, meds.length))}
       ${ak('pie', 'neutral', 'Concentración top 10', 'Parte de las medallas individuales que suman los 10 principales medallistas: ' + nf(topShare) + ' de ' + nf(indivTotal) + '.', `${nf(topShare)} de ${nf(indivTotal)} medallas`, pct(topShare, indivTotal) + ' %')}
       ${ak('target', 'informative', 'Nuevos en ' + esc(lastEv.label), 'Medallistas de ' + esc(lastEv.label) + ' que no habían ganado medalla en los eventos anteriores seleccionados.', one ? 'Elige 2 eventos' : `de ${nf(lastMed.size)} medallistas`, one ? '—' : nf(fresh), one ? '' : pc(fresh, lastMed.size))}
@@ -7993,7 +7998,7 @@ const INFO = {
   podio:'Finales disputadas = podios (1.º a 3.º) + finalistas sin podio (4.º a 8.º). Conversión = podios ÷ finales disputadas. Grupos: menos de 50 %, de 50 % a menos de 80 %, 80 % o más.',
   gender:'',
   genderBase:'Equipo: mujeres ÷ delegación. Medallas: medallas de pruebas femeninas ÷ total de medallas, sin pruebas mixtas. Diferencia: medallas % − equipo %, en puntos. La línea punteada marca el 50 %.',
-  ath:'Medallistas únicos del periodo, recurrentes (ganaron en 2 o más eventos) y concentración en los 10 principales.'
+  ath:'Medallistas del periodo, recurrentes (ganaron en 2 o más eventos) y concentración en los 10 principales.'
 };
 function renderInfos(){
   document.querySelectorAll('.co-info').forEach(d => { d.querySelector('summary').innerHTML = ICON.info; if(d.dataset.info) d.querySelector('.co-info__p').textContent = INFO[d.dataset.info]; });
@@ -8028,25 +8033,19 @@ function onSegment(id, fn){
   });
 }
 
-// Select múltiple de años: el botón cerrado solo resume la selección
-function yearSummary(){
-  const ys = YEARS.filter(y => state.years.has(y));
-  if(ys.length === YEARS.length) return `Todos · ${ys[0]} – ${ys[ys.length - 1]}`;
-  if(ys.length === 1) return String(ys[0]);
-  return ys.length === YEARS.indexOf(ys[ys.length - 1]) - YEARS.indexOf(ys[0]) + 1 ? `${ys[0]} – ${ys[ys.length - 1]}` : `${ys.length} años seleccionados`;
-}
+// Periodo Desde – Hasta (por defecto, solo el año más reciente); al cambiar, el dashboard se recalcula sin pasos extra
 function renderYears(){
-  $('yrSum').textContent = yearSummary();
-  $('yrMenu').innerHTML = YEARS.map(y => `<label class="yr-opt" role="option" aria-selected="${state.years.has(y)}"><input type="checkbox" value="${y}"${state.years.has(y) ? ' checked' : ''}> ${y}</label>`).join('');
+  const lo = Math.min(...state.years), hi = Math.max(...state.years), opts = (sel) => YEARS.map(y => `<option value="${y}"${y === sel ? ' selected' : ''}>${y}</option>`).join('');
+  $('yrFrom').innerHTML = opts(lo); $('yrTo').innerHTML = opts(hi);
 }
-function toggleYears(open){ $('yrMenu').hidden = !open; $('yrPicker').classList.toggle('is-open', open); $('yrBox').setAttribute('aria-expanded', open); }
-renderYears();
-$('yrBox').addEventListener('click', () => toggleYears($('yrMenu').hidden));
-$('yrMenu').addEventListener('change', e => {
-  const y = +e.target.value;
-  if(e.target.checked) state.years.add(y); else if(state.years.size > 1) state.years.delete(y);   // siempre queda al menos un año
+function setPeriodo(from, to, cambio){
+  if(from > to){ if(cambio === 'from') to = from; else from = to; }   // el que se acaba de mover arrastra al otro
+  state.years = new Set(YEARS.filter(y => y >= from && y <= to));
   state.selected = new Set(rangeEvents().map(x => x.code)); renderYears(); renderAll();
-});
+}
+renderYears();
+$('yrFrom').addEventListener('change', () => setPeriodo(+$('yrFrom').value, +$('yrTo').value, 'from'));
+$('yrTo').addEventListener('change', () => setPeriodo(+$('yrFrom').value, +$('yrTo').value, 'to'));
 $('evBox').addEventListener('click', () => toggleMenu($('evMenu').hidden));
 $('evBox').addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown'){ e.preventDefault(); toggleMenu(true); } });
 // Siempre queda al menos un evento: si se vaciara, se conserva el más reciente (DC-090).
@@ -8067,9 +8066,8 @@ $('evMenu').addEventListener('click', e => { const b = e.target.closest('[data-e
   renderAll(); });
 $('evSearch').addEventListener('input', e => { state.query = e.target.value; renderPicker(); });
 // composedPath(): el clic en una opción re-pinta la lista y deja el target fuera del DOM
-document.addEventListener('click', e => { if(!e.composedPath().includes($('evPicker'))) toggleMenu(false);
-  if(!e.composedPath().includes($('yrPicker'))) toggleYears(false); });
-document.addEventListener('keydown', e => { if(e.key === 'Escape'){ const o = !$('yrMenu').hidden; toggleMenu(false); toggleYears(false); hideTip(); if(o) $('yrBox').focus(); } });
+document.addEventListener('click', e => { if(!e.composedPath().includes($('evPicker'))) toggleMenu(false); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape'){ toggleMenu(false); hideTip(); } });
 
 // Navegación por secciones: anclas + resaltado según el scroll
 // Tabs: un panel visible a la vez; el scatter se redibuja al mostrarse (su ResizeObserver lo detecta)
