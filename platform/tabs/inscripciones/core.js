@@ -31,7 +31,8 @@
       if (p.participa && !e.col) { e.col = true; s.pc++; }
       dias[p.fecha] = (dias[p.fecha] || 0) + 1;
       (p.colombianos || []).forEach(function (c) {
-        var eq = String(c.deportista).indexOf('(') >= 0, ik = (eq ? 'E|' : 'D|') + k + '|' + c.deportista;
+        /* Revisión COC (17): el modelo real nombra al equipo solo «Colombia», sin paréntesis. */
+        var eq = String(c.deportista).indexOf('(') >= 0 || N.norm(c.deportista) === 'colombia', ik = (eq ? 'E|' : 'D|') + k + '|' + c.deportista;
         if (seen[ik]) return;
         seen[ik] = 1; ins++; s.ins++; s[g]++; tot[g]++; insDia[p.fecha] = (insDia[p.fecha] || 0) + 1;
         if (eq) { insEq++; s.eq++; return; }

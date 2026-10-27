@@ -35,7 +35,7 @@
       el.innerHTML = '<section class="nwtab-tab nwtab-ins-root" aria-label="Nominal"><div class="nwtab-emptyb nwtab-emptyb--lg"><b>Sin datos disponibles</b><span>Este evento todavía no tiene pruebas publicadas.</span></div></section>';
       return;
     }
-    h = '<section class="nwtab-tab nwtab-ins-root" aria-label="Nominal">' + kpis(c, data) + C.cupos(c) +
+    h = '<section class="nwtab-tab nwtab-ins-root" aria-label="Nominal"><p class="nwtab-in-lead">Nominal: los deportistas de Colombia en este evento, con los deportes y pruebas en que participan y su avance por jornada.</p>' + kpis(c, data) + C.cupos(c) +
       '<div class="nwtab-in-row nwtab-in-row--a">' + C.jornada(c, ui) + C.tipo(c) + '</div>' + C.genero(c, ui) +
       C.deportes(c, ui) + C.tabla.render(c, ui, data) + '</section>';
     el.innerHTML = h;

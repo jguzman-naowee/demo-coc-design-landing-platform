@@ -7,7 +7,9 @@
   var SEXO = { F: 'Mujeres', M: 'Hombres', X: 'Mixtas', U: 'Sin género' };
   var NA = 'Sin datos disponibles';
 
-  function dotMed(k) { return '<i class="nwtab-md-dot nwtab-md-dot--' + k + '" aria-hidden="true"></i>'; }
+  function dotMed(k) { return OLC.medalla({ oro: 'gold', plata: 'silver', bronce: 'bronze' }[k], 'none', 18); }
+  /* Puesto: medalla con número para 1.º–3.º; el resto, número simple */
+  function rk(n) { return n <= 3 ? '<span class="nwtab-md-rkm">' + OLC.medalla(['gold', 'silver', 'bronze'][n - 1], n, 34) + '</span>' : '<span class="nwtab-md-rk is-plain">' + n + '</span>'; }
   function sx(k, t) { return '<span class="nwtab-mh">' + N.sexIco(k) + '<span class="nwtab-md-th">' + t + '</span></span>'; }
   function pct(a, b) { if (!b) return '0'; var s = (a / b * 100).toFixed(1).replace('.', ','); return s.replace(/,0$/, ''); }
   function ordDe(n) { return n + '.º'; }
@@ -184,7 +186,7 @@
       '<th scope="col" class="nwtab-r">Total</th><th scope="col" class="nwtab-md-hide-s">Oros del deporte que ganó Colombia</th><th scope="col">Puesto en el deporte</th></tr></thead><tbody>';
     shown.forEach(function (d, i) {
       var c = d.co, lead = c.pos === 1, w = d.oros ? c.oro / d.oros * 100 : 0, l = d.m[0];
-      h += '<tr><td class="nwtab-md-c1"><span class="nwtab-md-rk' + (i < 3 ? '' : ' is-plain') + '">' + (i + 1) + '</span></td><td><span class="nwtab-dn">' + esc(d.nombre) + '</span></td>' +
+      h += '<tr><td class="nwtab-md-c1">' + rk(i + 1) + '</td><td><span class="nwtab-dn">' + esc(d.nombre) + '</span></td>' +
         '<td class="nwtab-r"><span class="nwtab-n' + (c.oro ? '' : ' is-0') + '">' + c.oro + '</span></td><td class="nwtab-r"><span class="nwtab-n' + (c.plata ? '' : ' is-0') + '">' + c.plata + '</span></td><td class="nwtab-r"><span class="nwtab-n' + (c.bronce ? '' : ' is-0') + '">' + c.bronce + '</span></td>' +
         '<td class="nwtab-r"><b class="nwtab-n nwtab-n--t">' + c.total + '</b></td>' +
         '<td class="nwtab-md-hide-s">' + (d.oros ? '<span class="nwtab-md-w"><span class="nwtab-md-w__tr" aria-hidden="true"><span style="width:' + w + '%"></span></span><span class="nwtab-md-w__t">' + c.oro + ' de ' + d.oros + '</span></span>' : '<span class="nwtab-md-mut">Sin oros en el deporte</span>') + '</td>' +
@@ -315,7 +317,7 @@
       '<th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('oro') + '<span class=\"nwtab-md-th\">Oro</span></span></th><th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('plata') + '<span class=\"nwtab-md-th\">Plata</span></span></th><th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('bronce') + '<span class=\"nwtab-md-th\">Bronce</span></span></th><th scope="col" class="nwtab-r">Total</th></tr></thead><tbody>';
     M.todos.forEach(function (r, i) {
       var own = r.pais === 'CO';
-      h += '<tr' + (own ? ' class="nwtab-co"' : '') + '><td class="nwtab-md-c1"><span class="nwtab-md-rk' + (i < 3 ? '' : ' is-plain') + '">' + r.pos + '</span></td><td>' + nombrePais(r.pais, r.paisNombre, own) + '</td>' +
+      h += '<tr' + (own ? ' class="nwtab-co"' : '') + '><td class="nwtab-md-c1">' + rk(r.pos) + '</td><td>' + nombrePais(r.pais, r.paisNombre, own) + '</td>' +
         ['oro', 'plata', 'bronce'].map(function (k) { return '<td class="nwtab-r"><span class="nwtab-n' + (r[k] ? '' : ' is-0') + '">' + r[k] + '</span></td>'; }).join('') +
         '<td class="nwtab-r"><b class="nwtab-n nwtab-n--t">' + r.total + '</b></td></tr>';
     });

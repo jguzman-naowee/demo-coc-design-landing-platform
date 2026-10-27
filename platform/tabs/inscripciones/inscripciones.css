@@ -118,7 +118,7 @@
 .nwtab-in-tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
 .nwtab-in-fl { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: var(--nwtab-mut); }
 .nwtab-in-fl--q { flex: 1 1 16rem; }
-.nwtab-in-fi { min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid var(--naotech-app-color-300); border-radius: 8px; background: var(--naotech-app-background); color: var(--in-ink); font: 400 15px/1 inherit; font-family: inherit; min-width: 9rem; }
+.nwtab-in-fi { min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid var(--naotech-app-color-300); border-radius: 8px; background-color: var(--naotech-app-background); color: var(--in-ink); font: 400 15px/1 inherit; font-family: inherit; min-width: 9rem; }
 .nwtab-in-fl--q .nwtab-in-fi { width: 100%; }
 .nwtab-md-card__h.has-info > .nwtab-in-fl--h { margin-left: auto; align-self: center; }
 .nwtab-in-ti { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -313,3 +313,5 @@
   .nwtab-in-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .nwtab-in-fl--q { grid-column: 1 / -1; }
 }
+
+.nwtab-in-lead { margin: 0 0 12px; font-size: 14px; color: var(--naotech-color-text-secondary, #5b6270); }

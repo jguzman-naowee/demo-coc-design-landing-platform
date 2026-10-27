@@ -10,17 +10,28 @@
     { id: 'deportes', label: 'Deportes' },
     { id: 'inscripciones', label: 'Nominal' },
     { id: 'calendario-resultados', label: 'Calendario y resultados' },
-    { id: 'medalleria', label: 'Medallería' }
+    { id: 'medalleria', label: 'Medallería' },
+    { id: 'boletines', label: 'Boletines técnicos' }
   ];
   var PARAMS = ['sexo', 'colombia', 'dia', 'deporte', 'q', 'tab', 'prueba', 'modal'];
   /* Menú del MF real (src/config/menu.ts); las rutas son hash del prototipo. */
   var MENU = [
     { id: 'olympic-cycle-dashboard', label: 'Dashboard Ciclo Olímpico', route: '#/dashboards', icon: 'view-columns', section: 'ANALÍTICA' },
     // Sin enlaces vacíos: solo se listan secciones con contenido (DC-151)
-    { id: 'events', label: 'Eventos', route: '#/eventos', icon: 'categories', section: 'EVENTOS' }
+    { id: 'events', label: 'Eventos', route: '#/eventos', icon: 'categories', section: 'EVENTOS' },
+    { id: 'citizens', label: 'Ciudadanía', route: '#/users/citizens', icon: 'user', section: 'GESTIÓN', perfiles: ['gestor'] },
+    { id: 'bodies', label: 'Organismos', route: '#/users/bodies', icon: 'categories', perfiles: ['gestor'] }
   ];
-  var EMPTY = { '/analytics/dashboards': 'Dashboards', '/analytics/reports': 'Reportes', '/management': 'Gestión deportiva', '/users': 'Gestión de usuarios' };
-  var YO = 'Laura Marcela Ortiz'; // usuario de la demo: «Mis eventos» = eventos que gestiona
+  /* Perfiles de la demo: el Gestor Comité ve el dashboard y los eventos, no Ciudadanía ni Organismos. Cambia con ?perfil=comite o gestor y se recuerda. */
+  var PERFILES = { gestor: { nombre: 'Laura Marcela Ortiz', rol: 'Gestor de eventos' }, comite: { nombre: 'Paulo Restrepo', rol: 'Gestor Comité' } };
+  var PERFIL = (function () {
+    var q = (location.search.match(/[?&]perfil=(\w+)/) || [])[1], k = q;
+    try { if (q && PERFILES[q]) localStorage.setItem('coc.perfil', q); else k = localStorage.getItem('coc.perfil'); } catch (e) { /* sin almacenamiento: queda el perfil por defecto */ }
+    return PERFILES[k] ? k : 'gestor';
+  })();
+  window.COC_PERFIL = PERFIL;
+  var EMPTY = { '/users/citizens': 'Ciudadanía', '/users/bodies': 'Organismos', '/analytics/dashboards': 'Dashboards', '/analytics/reports': 'Reportes', '/management': 'Gestión deportiva', '/users': 'Gestión de usuarios' };
+  var YO = PERFILES[PERFIL].nombre; // usuario de la demo: «Mis eventos» = eventos que gestiona
 
   /* ---------- utilidades ---------- */
   function esc(s) {
@@ -87,7 +98,7 @@
     var m = path.match(/^\/eventos\/([^/]+)\/?$/);
     var s = path.replace(/\/$/, '');
     if (s === '/dashboards') return { view: 'dashboard', code: s, params: params };
-    if (EMPTY[s]) return { view: 'vacia', code: s, params: params };
+    if (EMPTY[s] && !(PERFIL === 'comite' && /^\/users\/(citizens|bodies)$/.test(s))) return { view: 'vacia', code: s, params: params };
     return { view: m ? 'detalle' : 'listado', code: m ? decodeURIComponent(m[1]) : null, params: params };
   }
   function buildHash(code, params) {
@@ -121,7 +132,7 @@
 
   /* ---------- estado del shell ---------- */
   var state = { code: null, view: null };
-  var listUi = { scope: 'mine', estado: 'todos', q: '', page: 1, vista: 'tarjetas', mes: '2026-10' };
+  var listUi = { scope: PERFIL === 'comite' ? 'all' : 'mine', estado: 'todos', q: '', page: 1, vista: 'tarjetas', mes: '2026-10' };
   var tabUi = {}; // ctx.ui por evento: sobrevive a los re-render
   var PAGE_SIZE = 12; // cabe todo el catálogo (11): «Todos» no esconde en pág. 2 los de «Mis eventos»
 
@@ -143,7 +154,7 @@
   }
   function syncMenu(route) {
     var act = menuActivo(route);
-    $side.menus = MENU.map(function (m) { return Object.assign({}, m, { active: m.id === act }); });
+    $side.menus = MENU.filter(function (m) { return !m.perfiles || m.perfiles.indexOf(PERFIL) >= 0; }).map(function (m) { return Object.assign({}, m, { active: m.id === act }); });
   }
   function drawerMode() { return window.matchMedia('(max-width:960px)').matches; }
   function syncInert(open) { if (drawerMode() && !open) $side.setAttribute('inert', ''); else $side.removeAttribute('inert'); }
@@ -541,12 +552,15 @@
     var ev = data && data.evento, est = ev ? OLC.estado(ev) : null, clave = ev ? pestanaClave(ev) : null;
     var vis = TABS.filter(function (t) {
       if (!data) return true;
+      if (t.id === 'boletines') return OLC.boletines(data).length > 0;
       if (t.id === 'medalleria') return est !== 'Próximo';
       return true;
     }).map(function (t) {
       return t.id === 'calendario-resultados' ? { id: t.id, label: etiquetaCalendario(ev) } : t;
     });
-    /* El orden es fijo (Información, Deportes, Nominal, Calendario, Medallería): Información va primero y abre por defecto; la clave solo se marca. */
+    /* Información va primero y abre por defecto; el resto sigue el orden de la revisión COC según el estado (21 y 22). La clave solo se marca. */
+    var ORD = { 'Finalizado': ['informacion', 'medalleria', 'deportes', 'inscripciones', 'calendario-resultados', 'boletines'], 'En curso': ['informacion', 'calendario-resultados', 'deportes', 'inscripciones', 'medalleria', 'boletines'] }[est];
+    if (ORD && data) vis.sort(function (a, b) { return ORD.indexOf(a.id) - ORD.indexOf(b.id); });
     return vis.map(function (t) { return t.id === clave ? Object.assign({}, t, { clave: true }) : t; });
   }
   /* Qué sección importa según el momento del evento: pasó, está pasando o viene. */

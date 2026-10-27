@@ -1,5 +1,5 @@
 /* Pestañas de la plataforma (Calendario y resultados, Deportes, Medallería, Deportistas). Tokens --naotech-*, prefijo nwtab-. */
-.nwtab-tab { --nwtab-mut: var(--naotech-app-color-700); --nwtab-line: var(--naotech-app-color-200); --nwtab-soft: var(--naotech-app-color-050); --nwtab-co-ink: #5c4400; --nwtab-pri: var(--naotech-primary-color-700); --nwtab-pri-s: var(--naotech-primary-color-050);
+.nwtab-tab { --nwtab-mut: var(--naotech-app-color-700); --nwtab-line: var(--naotech-app-color-200); --nwtab-soft: var(--naotech-app-color-050); --nwtab-co-ink: #5c4400; --nwtab-co-bg: #fffcef; --nwtab-co-line: #ecdc9c; --nwtab-pri: var(--naotech-primary-color-700); --nwtab-pri-s: var(--naotech-primary-color-050);
   display: flex; flex-direction: column; width: 100%; gap: var(--naotech-sizing-16); font-family: inherit; font-size: var(--naotech-sizing-14); color: var(--naotech-app-font-color); min-width: 0; }
 .nwtab-tab *, .nwtab-tab *::before, .nwtab-tab *::after { box-sizing: border-box; }
 .nwtab-tab button, .nwtab-tab select, .nwtab-tab input { font-family: inherit; }
@@ -32,7 +32,9 @@
 .nwtab-seg__b:focus-visible { outline-offset: -2px; }
 .nwtab-fld { display: flex; flex-direction: column; gap: 4px; min-width: 12rem; flex: 1 1 12rem; max-width: 20rem; }
 .nwtab-sel, .nwtab-in { width: 100%; min-height: 44px; padding: 0 12px; border: var(--naotech-app-border-1-300); border-radius: 10px; background: var(--naotech-app-background); color: inherit; font-size: 14px; }
-.nwtab-sel { appearance: auto; }
+/* Chevron propio: el nativo queda pegado al borde y cambia según el navegador (DC-162). */
+.nwtab-sel, select.nwtab-in-fi { appearance: none; -webkit-appearance: none; padding-right: 36px; cursor: pointer; background-repeat: no-repeat; background-position: right 12px center; background-size: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23585a6e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
 .nwtab-search { position: relative; display: block; }
 .nwtab-search .nwtab-i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--nwtab-mut); pointer-events: none; }
 .nwtab-search .nwtab-in { padding-left: 38px; }
@@ -82,7 +84,7 @@
 .nwtab-dn { font-weight: 600; flex: 1 1 auto; min-width: 0; }
 .nwtab-dg .nwtab-cc { align-self: center; }
 .nwtab-mk { font-weight: 700; font-variant-numeric: tabular-nums; }
-tr.nwtab-co td, .nwtab-tb tbody tr.nwtab-co td { background: var(--nwtab-co-bg); }
+tr.nwtab-co td, .nwtab-tb tbody tr.nwtab-co td, .nwtab-tb tbody tr.nwtab-co:nth-child(even) td { background: var(--nwtab-co-bg); } /* DC-164: la cebra de filas pares lo pisaba */
 tr.nwtab-co .nwtab-dn { font-weight: 800; color: var(--nwtab-co-ink); }
 tr.nwtab-co .nwtab-cc { background: #fff; color: var(--nwtab-co-ink); }
 tr.nwtab-co td:first-child { box-shadow: inset 4px 0 0 var(--naotech-color-yellow-800); }
@@ -150,10 +152,6 @@ button.nwtab-cal__d:hover { background: var(--nwtab-soft); }
 .nwtab-gb__n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 16px; } /* DC-023, DC-044, DC-139 */
 .nwtab-gb__e { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--nwtab-mut); font-size: 13px; font-weight: 500; } /* DC-209 */
 .nwtab-all .nwtab-btn { min-height: 32px; padding: 0 12px; font-size: 13px; } /* DC-028 */
-.nwtab-all .nwtab-btn--i { width: 32px; padding: 0; } /* DC-040 */
-.nwtab-pop { position: fixed; z-index: 1000; min-width: 190px; padding: 4px; border: var(--naotech-app-border-1-200); border-radius: 10px; background: var(--naotech-app-background); box-shadow: 0 8px 24px rgba(0, 0, 0, .16); } /* DC-091 */
-.nwtab-pop__it { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 40px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; }
-.nwtab-pop__it:hover, .nwtab-pop__it:focus-visible { background: var(--nwtab-pri-s); color: var(--nwtab-pri); }
 .nwtab-cr__side .nwtab-vsw { display: grid; grid-template-columns: 1fr 1fr; width: 100%; } /* DC-090 */
 .nwtab-cr__side .nwtab-vsw .nwtab-seg__b { padding: 0 8px; white-space: nowrap; }
 .nwtab-gc { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: var(--naotech-app-background); box-shadow: inset 0 0 0 1px var(--naotech-app-color-300); font-size: 12px; font-weight: 700; }
@@ -170,6 +168,7 @@ button.nwtab-cal__d:hover { background: var(--nwtab-soft); }
 .nwtab-dyb__c { margin-right: 4px; }
 .nwtab-dyb__m { margin-left: auto; }
 .nwtab-pr { padding: 12px 16px 0; border-top: 0; display: flex; flex-direction: column; gap: 16px; } /* DC-030 gap (DC-008: 16px), DC-054 padding-bottom 0 */
+.nwtab-pr:not(.is-open) { padding-bottom: 12px; } /* cerrada: sin cuerpo, el encabezado no se pega al borde */
 /* DC-007: franja de 8px entre pruebas, igual que el landing (DC-202); sin borde tras la última */
 .nwtab-pr + .nwtab-pr { border-top: 8px solid var(--naotech-app-color-100); }
 .nwtab-pr__hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px 24px; }
@@ -414,8 +413,7 @@ tr.nwtab-co .nwtab-fl__c { color: var(--nwtab-co-ink); }
 .nwtab-mt__s.is-co .nwtab-dn { color: var(--nwtab-co-ink); font-weight: 800; }
 .nwtab-mt__m { font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; padding: 2px 12px; border-radius: 8px; background: rgba(255,255,255,.7); }
 /* DC-103: medalla de Colombia en la fila colapsada de la fase. */
-.nwtab-mdl { display: inline-flex; flex: 0 0 auto; }
-.nwtab-mdl--oro { color: #e0a800; } .nwtab-mdl--plata { color: #9aa0b4; } .nwtab-mdl--bronce { color: #b87333; }
+.nwtab-mdl { display: inline-flex; flex: 0 0 auto; line-height: 0; }
 /* Filtros: «Vista» con título y «Solo pruebas con Colombianos» con título a la izquierda e interruptor a la derecha. */
 .nwtab-fld--sw { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; max-width: none; }
 .nwtab-fld--sw .nwtab-sw { padding: 0; }
@@ -566,3 +564,33 @@ dialog.nwtab-dpm::backdrop { background: rgb(10 10 10 / .6); }
   .nwtab-cr__cal.is-stuck .nwtab-strip::before, .nwtab-cr__cal.is-stuck .nwtab-strip::after { flex-basis: max(calc(50% - 32px), 56px); }
   .nwtab-calres .nwtab-cr__side { position: sticky; top: calc(var(--nwtab-sk) + var(--nwtab-cal-h, 66px) + 12px); }
 }
+
+
+/* Boletines técnicos (revisión COC, 18) */
+.nwtab-bol-s { margin: 0 0 16px; color: var(--naotech-color-text-secondary, #5b6270); }
+.nwtab-bol-l { list-style: none; margin: 0; padding: 0; border-top: 1px solid #e3e5ea; }
+.nwtab-bol-i { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #e3e5ea; }
+.nwtab-bol-i b { display: block; } .nwtab-bol-i span { font-size: 13px; color: var(--naotech-color-text-secondary, #5b6270); }
+.nwtab-bol-a { display: flex; gap: 8px; }
+.nwtab-bol-b { min-height: 40px; padding: 0 16px; border: 1px solid #d74009; border-radius: 8px; background: #fff; color: #d74009; font: inherit; font-weight: 700; cursor: pointer; }
+.nwtab-bol-b--p { background: #d74009; color: #fff; }
+
+/* Carga masiva de calendario (revisión COC, 19) */
+.nwtab-cm__bar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+.nwtab-cm { width: min(640px, 92vw); border: 0; border-radius: 12px; padding: 0; }
+.nwtab-cm::backdrop { background: rgba(0, 0, 0, .45); }
+.nwtab-cm__b { padding: 24px; } .nwtab-cm__b h2 { margin: 0 0 8px; }
+.nwtab-cm__lk { border: 0; background: none; padding: 0; color: #d74009; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.nwtab-cm__f { display: grid; gap: 6px; margin: 12px 0; font-weight: 600; }
+.nwtab-cm__e { color: #b3261e; }
+.nwtab-cm__t { max-height: 220px; overflow: auto; border: 1px solid #e3e5ea; border-radius: 8px; }
+.nwtab-cm__t table { width: 100%; border-collapse: collapse; font-size: 13px; } .nwtab-cm__t th, .nwtab-cm__t td { padding: 6px 10px; text-align: left; border-bottom: 1px solid #eef0f3; }
+.nwtab-cm__t .is-err td { background: #fdecea; }
+.nwtab-cm__a { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.nwtab-cm__b h2 { margin: 0 0 8px; font: 700 22px/1.2 inherit; font-family: inherit; }
+
+.nwtab-all .nwtab-btn { display: inline-flex; align-items: center; gap: 8px; }
+@media (max-width: 560px) { .nwtab-all__t { display: none; } .nwtab-all .nwtab-btn { width: 36px; padding: 0; justify-content: center; } }
+
+/* Medallas nuevas en puestos 1.º–3.º */
+.nwtab-pm-m, .nwtab-md-rkm { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; line-height: 0; }

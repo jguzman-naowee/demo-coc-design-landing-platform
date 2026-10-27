@@ -56,7 +56,7 @@
     return '<svg class="nwtab-i" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" focusable="false">' + (p[name] || p.star) + '</svg>';
   };
   var DEP_ICO = { atletismo: 'run', natacion: 'waves', judo: 'fight', boxeo: 'glove', lucha: 'fight', ciclismo: 'bike', gimnasia: 'gym', pesas: 'bell', taekwondo: 'fight', 'tenis-mesa': 'paddle', voleibol: 'ball', baloncesto: 'ball', balonmano: 'ball', 'futbol-sala': 'ball' };
-  N.depIco = function (code) { return N.ico(DEP_ICO[code] || 'star'); };
+  N.depIco = function (code) { return OLC.iconoDeporte(code, 'nwtab-i', 20); };
   N.ord = function (n) { return n + '.º'; };
   N.medalName = function (pos) { return pos === 1 ? 'Oro' : pos === 2 ? 'Plata' : pos === 3 ? 'Bronce' : ''; };
   N.medalDot = function (k) { return '<i class="nwtab-md nwtab-md--' + k + '" aria-hidden="true"></i>'; };

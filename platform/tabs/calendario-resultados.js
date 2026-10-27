@@ -60,7 +60,7 @@
     return '<svg class="nwtab-i" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" focusable="false">' + (p[name] || p.star) + '</svg>';
   };
   var DEP_ICO = { atletismo: 'run', natacion: 'waves', judo: 'fight', boxeo: 'glove', lucha: 'fight', ciclismo: 'bike', gimnasia: 'gym', pesas: 'bell', taekwondo: 'fight', 'tenis-mesa': 'paddle', voleibol: 'ball', baloncesto: 'ball', balonmano: 'ball', 'futbol-sala': 'ball' };
-  N.depIco = function (code) { return N.ico(DEP_ICO[code] || 'star'); };
+  N.depIco = function (code) { return OLC.iconoDeporte(code, 'nwtab-i', 20); };
   N.ord = function (n) { return n + '.º'; };
   N.medalName = function (pos) { return pos === 1 ? 'Oro' : pos === 2 ? 'Plata' : pos === 3 ? 'Bronce' : ''; };
   N.medalDot = function (k) { return '<i class="nwtab-md nwtab-md--' + k + '" aria-hidden="true"></i>'; };
@@ -142,51 +142,6 @@
     return o;
   }, {});
 
-  var ICO_MAS = '<svg class="nwtab-i" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" focusable="false"><g fill="currentColor"><circle cx="4.5" cy="10" r="1.7"/><circle cx="10" cy="10" r="1.7"/><circle cx="15.5" cy="10" r="1.7"/></g></svg>';
-
-  /* DC-091: el popover vive en <body> (position:fixed) para no cortarse con overflow:hidden. */
-  var pop = null;
-  function cerrarPop(devolverFoco) {
-    if (!pop) return;
-    var p = pop; pop = null;
-    document.removeEventListener('mousedown', p.fuera, true); document.removeEventListener('keydown', p.tecla, true);
-    window.removeEventListener('resize', p.cerrar); window.removeEventListener('scroll', p.mov, true);
-    p.el.remove(); p.btn.setAttribute('aria-expanded', 'false');
-    if (devolverFoco && p.btn.isConnected) p.btn.focus();
-  }
-  function abrirPop(btn, elegir) {
-    cerrarPop();
-    var m = document.createElement('div'); m.className = 'nwtab-pop'; m.setAttribute('role', 'menu'); m.setAttribute('aria-label', 'Más acciones');
-    m.innerHTML = ['exp', 'con'].map(function (k) {
-      return '<button type="button" role="menuitem" tabindex="-1" class="nwtab-pop__it" data-all="' + (k === 'exp' ? 1 : 0) + '">' + ICO_ALL[k] + '<span>' + (k === 'exp' ? 'Expandir todo' : 'Contraer todo') + '</span></button>';
-    }).join('');
-    document.body.appendChild(m);
-    var items = [].slice.call(m.querySelectorAll('[role=menuitem]'));
-    var r = btn.getBoundingClientRect(), w = m.offsetWidth, h = m.offsetHeight, vw = document.documentElement.clientWidth, vh = window.innerHeight;
-    var left = Math.max(8, Math.min(r.right - w, vw - w - 8)), top = r.bottom + 4;
-    if (top + h > vh - 8 && r.top - 4 - h >= 8) top = r.top - 4 - h;
-    m.style.left = left + 'px'; m.style.top = top + 'px';
-    var p = pop = { el: m, btn: btn };
-    p.cerrar = function () { cerrarPop(false); };
-    /* Se cierra solo si el botón se movió (scroll real), no por el scroll de enfoque. */
-    p.mov = function () { if (Math.abs(btn.getBoundingClientRect().top - r.top) > 1) cerrarPop(false); };
-    p.fuera = function (e) { if (!m.contains(e.target) && !btn.contains(e.target)) cerrarPop(false); };
-    p.tecla = function (e) {
-      var i = items.indexOf(document.activeElement);
-      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cerrarPop(true); }
-      else if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i < 0 ? 0 : i - 1 + items.length) % items.length].focus(); }
-      else if (e.key === 'Home') { e.preventDefault(); items[0].focus(); }
-      else if (e.key === 'End') { e.preventDefault(); items[items.length - 1].focus(); }
-      else if (e.key === 'Tab') cerrarPop(false);
-    };
-    document.addEventListener('mousedown', p.fuera, true); document.addEventListener('keydown', p.tecla, true);
-    window.addEventListener('resize', p.cerrar); window.addEventListener('scroll', p.mov, true);
-    items.forEach(function (it) { it.addEventListener('click', function () { var v = it.getAttribute('data-all') === '1'; cerrarPop(false); elegir(v); }); });
-    btn.setAttribute('aria-expanded', 'true');
-    items[0].focus({ preventScroll: true });
-  }
-
   function st(ctx) { var u = ctx.ui; u.cr = u.cr || { g: {}, p: {}, d: {}, prueba: '', ronda: '' }; return u.cr; }
 
   function pasa(p, ctx, ui, skip) {
@@ -197,9 +152,9 @@
     if (ui.ronda && p.ronda !== ui.ronda) return false;
     return true;
   }
-  function abiertaPorDefecto(p) { return !!p.participa; }
+  function abiertaPorDefecto() { return false; } /* Revisión COC (2): el listado carga colapsado. */
   function pruebaAbierta(p, ui) { return p.id in ui.p ? ui.p[p.id] : abiertaPorDefecto(p); }
-  function grupoAbierto(code, ui) { return code in ui.g ? ui.g[code] : true; }
+  function grupoAbierto(code, ui) { return code in ui.g ? ui.g[code] : false; } /* Revisión COC: todo carga colapsado. */
 
   /* Tira horizontal de jornadas: un cuadrado por día con competencias, agrupado por mes. */
   function calendario(ctx, dia, conPruebas) {
@@ -232,9 +187,11 @@
 
   /* Filas y etiqueta de Colombia salen del modelo (OLC.resultadoFilas/colombianoEtiqueta); aquí solo se pintan. */
   function tieneRes(p) { return !!((p.filas && p.filas.length) || (p.tipo === 'match' && p.match)); }
+  var MET = { oro: 'gold', plata: 'silver', bronce: 'bronze' };
   function puesto(f) {
-    var m = f.medalla ? String(f.medalla).toLowerCase() : '';
-    return '<span class="nwtab-pos">' + (m ? '<span class="nwtab-pm nwtab-pm--' + m + '" title="' + esc(f.medalla) + '">' + f.puesto + '</span><span class="nwtab-sr">' + esc(f.medalla) + '</span>' : '<span class="nwtab-pm nwtab-pm--n">' + f.puesto + '</span>') + '</span>';
+    /* En una final los tres primeros llevan color aunque el dato no traiga la medalla. */
+    var med = f.medalla || (f.premia !== false && f.puesto >= 1 && f.puesto <= 3 ? ['Oro', 'Plata', 'Bronce'][f.puesto - 1] : ''), m = f.premia !== false && med ? String(med).toLowerCase() : '';
+    return '<span class="nwtab-pos">' + (m ? '<span class="nwtab-pm-m" title="' + esc(med) + '">' + OLC.medalla(MET[m], f.puesto, 34) + '</span><span class="nwtab-sr">' + esc(med) + '</span>' : '<span class="nwtab-pm nwtab-pm--n">' + f.puesto + '</span>') + '</span>';
   }
   function lado(l, gana, rev) {
     var co = l.pais === 'CO', cc = N.flag(l.pais, l.paisNombre), nm = '<span class="nwtab-dn">' + esc(l.nombre) + '</span>';
@@ -263,10 +220,10 @@
   /* DC-103: solo la mejor medalla de Colombia en la fase; sin medalla, nada. */
   function medallaFase(p) {
     var orden = ['Oro', 'Plata', 'Bronce'], mejor = '';
-    (p.colombianos || []).forEach(function (c) { if (c.medalla && (!mejor || orden.indexOf(c.medalla) < orden.indexOf(mejor))) mejor = c.medalla; });
+    (p.colombianos || []).forEach(function (c) { if (c.medalla && c.premia !== false && (!mejor || orden.indexOf(c.medalla) < orden.indexOf(mejor))) mejor = c.medalla; });
     if (!mejor) return '';
     var k = mejor.toLowerCase(), t = 'Medalla de ' + k + ' para Colombia';
-    return '<span class="nwtab-mdl nwtab-mdl--' + k + '" role="img" title="' + t + '" aria-label="' + t + '"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6 1.5h3l1 4.2-2.5 1zM14 1.5h-3l-1 4.2 2.5 1z" fill="currentColor" opacity=".55"/><circle cx="10" cy="13" r="5.5" fill="currentColor"/><circle cx="10" cy="13" r="3.2" fill="none" stroke="#fff" stroke-width="1.2" opacity=".7"/></svg></span>';
+    return '<span class="nwtab-mdl" role="img" title="' + t + '" aria-label="' + t + '">' + OLC.medalla({ oro: 'gold', plata: 'silver', bronce: 'bronze' }[k], 'none', 30) + '</span>';
   }
   function textoProg(p) { var n = (p.colombianos || []).length; return n ? (n === 1 ? '1 colombiano compite' : n + ' colombianos compiten') : ''; }
 
@@ -367,19 +324,28 @@
   }
 
   function render(el, ctx) {
-    cerrarModal(false); cerrarPop();
+    cerrarModal(false);
     var ui = st(ctx), data = ctx.data, pr = ctx.params;
     var dia = diaSel(data, pr.dia);
+    /* Filtros en cascada (Deporte → Prueba → Género → Ronda): cada lista sale de lo elegido antes y lo que deja de existir se limpia solo. */
+    var uniq = function (arr, f) { return arr.reduce(function (o, p) { var v = f(p); if (v && o.indexOf(v) < 0) o.push(v); return o; }, []); };
+    var P0 = data.pruebas.filter(function (p) { return !(N.colOn(pr, data) && !p.participa); });
+    var deps = data.deportes.filter(function (d) { return P0.some(function (p) { return p.deporte === d.codigo; }); });
+    var P1 = P0.filter(function (p) { return !pr.deporte || p.deporte === pr.deporte; });
+    var nombres = uniq(P1, function (p) { return p.nombre; }).sort(function (a, b) { return a.localeCompare(b, 'es', { numeric: true }); });
+    if (nombres.length < 2 || nombres.indexOf(ui.prueba) < 0) ui.prueba = '';
+    var P2 = P1.filter(function (p) { return !ui.prueba || p.nombre === ui.prueba; });
+    var sexos = ['F', 'M', 'X'].filter(function (s) { return P2.some(function (p) { return p.sexo === s; }); });
+    if (pr.sexo && (sexos.length < 2 || sexos.indexOf(pr.sexo) < 0)) {
+      ctx.params.sexo = '';
+      try { history.replaceState(null, '', ctx.href({ sexo: '' })); } catch (e) { /* sin historial: la vista ya lo ignora */ }
+    }
+    var P3 = P2.filter(function (p) { return !pr.sexo || p.sexo === pr.sexo; });
+    var rondas = uniq(P3, function (p) { return p.ronda; });
+    if (rondas.length < 2 || rondas.indexOf(ui.ronda) < 0) ui.ronda = '';
     var base = data.pruebas.filter(function (p) { return pasa(p, ctx, ui); });
     var conPruebas = {}; base.forEach(function (p) { conPruebas[p.fecha] = 1; });
 
-    /* Solo las opciones que existen en el evento; un control con una única opción no se pinta. */
-    var deps = data.deportes.filter(function (d) { return data.pruebas.some(function (p) { return p.deporte === d.codigo; }); });
-    var sexos = ['F', 'M', 'X'].filter(function (s) { return data.pruebas.some(function (p) { return p.sexo === s; }); });
-    var nombres = []; data.pruebas.forEach(function (p) { if ((!pr.deporte || p.deporte === pr.deporte) && nombres.indexOf(p.nombre) < 0) nombres.push(p.nombre); });
-    nombres.sort(function (a, b) { return a.localeCompare(b, 'es', { numeric: true }); });
-    if (ui.prueba && nombres.indexOf(ui.prueba) < 0) ui.prueba = '';
-    var rondas = []; data.pruebas.forEach(function (p) { if (rondas.indexOf(p.ronda) < 0) rondas.push(p.ronda); });
     var ctrl = colSwitch(pr, data) + (deps.length > 1 ? selectHtml('f-dep', 'Deporte', pr.deporte || '', [['', 'Todos los deportes']].concat(deps.map(function (d) { return [d.codigo, d.nombre]; }))) : '') +
       (nombres.length > 1 ? selectHtml('f-pru', 'Prueba', ui.prueba, [['', 'Todas las pruebas']].concat(nombres.map(function (n) { return [n, n]; }))) : '') +
       (sexos.length > 1 ? selectHtml('f-sex', 'Género', pr.sexo || '', [['', 'Todos']].concat(sexos.map(function (s) { return [s, SEXOS[s]]; }))) : '') +
@@ -393,7 +359,9 @@
     if (!base.length) {
       main = '<div class="nwtab-emptyb"><b>Ninguna competencia coincide con los filtros.</b><span>' + (hayFiltro ? 'Pruebe con otros criterios o restablézcalos.' : 'Este evento aún no tiene competencias con Colombia.') + '</span>' + (hayFiltro ? '<button type="button" class="nwtab-btn" data-k="clr" data-clr="1">Limpiar filtros</button>' : '') + '</div>';
     } else {
-      var acciones = '<div class="nwtab-all"><button type="button" class="nwtab-btn nwtab-btn--i" data-k="mas" data-menu="1" title="Más acciones" aria-label="Más acciones" aria-haspopup="menu" aria-expanded="false">' + ICO_MAS + '</button></div>';
+      var acciones = '<div class="nwtab-all" role="group" aria-label="Pruebas de la jornada">' + [['exp', 'Expandir todo', 1], ['con', 'Contraer todo', 0]].map(function (x) {
+        return '<button type="button" class="nwtab-btn" data-k="all-' + x[0] + '" data-all="' + x[2] + '" aria-label="' + x[1] + '">' + ICO_ALL[x[0]] + '<span class="nwtab-all__t">' + x[1] + '</span></button>';
+      }).join('') + '</div>';
       var delDia = base.filter(function (p) { return p.fecha === dia; }), t = N.tiempoDia(dia);
       main = '<div class="nwtab-dayh"><div><h2 class="nwtab-h nwtab-h--lg">' + esc(OLC.fechaLarga(dia)) + ' ' + N.tiempoBadge(t) + '</h2>' + (t === 'Próxima' ? '<p class="nwtab-sub">' + N.faltan(dia) + '</p>' : '') + '</div>' + (delDia.length ? acciones : '') + '</div>';
       if (delDia.length) main += grupos(delDia, ctx, ui, '');
@@ -482,13 +450,11 @@
       if (ab && !bd.firstChild) { bd.innerHTML = cuerpo(p, ctx); N.bindLinks(bd, ctx); bindVer(bd, ctx, el); }
       b.setAttribute('aria-expanded', ab); art.classList.toggle('is-open', ab); bd.hidden = !ab;
     });
-    on('[data-menu]', 'click', function (b) {
-      if (pop && pop.btn === b) { cerrarPop(true); return; }
-      abrirPop(b, function (v) {
-        el.querySelectorAll('[data-gr]').forEach(function (x) { ui.g[x.getAttribute('data-gr')] = v; });
-        visibles.forEach(function (p) { ui.p[p.id] = v; }); /* también las de grupos cerrados */
-        again('mas');
-      });
+    on('[data-all]', 'click', function (b) {
+      var v = b.getAttribute('data-all') === '1';
+      el.querySelectorAll('[data-gr]').forEach(function (x) { ui.g[x.getAttribute('data-gr')] = v; });
+      visibles.forEach(function (p) { ui.p[p.id] = v; }); /* también las de grupos cerrados */
+      again(b.getAttribute('data-k'));
     });
     /* DC-101: restablece filtros (no dia ni tab); si queda deshabilitado, el foco pasa al primer control. */
     on('[data-clr-all]', 'click', function () {
