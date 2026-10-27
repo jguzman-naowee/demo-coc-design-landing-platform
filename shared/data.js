@@ -3,7 +3,8 @@
    Los demás eventos son sintéticos y deterministas, con la MISMA forma de prueba (ver SPEC.md > Datos).
    Uso: OLC.eventos(), OLC.datosDe(code) → { evento, estado, colombia, deportes, pruebas, dias, paises, medallero() } */
 (function () {
-  var HOY = '2026-09-18';
+  /* ?hoy=AAAA-MM-DD simula otra fecha (configuraciones de demo.html). */
+  var HOY = ((window.location.search.match(/[?&]hoy=(\d{4}-\d{2}-\d{2})/) || [])[1]) || '2026-09-18';
   var CODE_REAL = 'suramericanos-sante-fe-2026';
   var REAL = window.OLC_REAL || null;
 
@@ -132,7 +133,8 @@
     { code: 'panam-pesas-2026', nombre: 'Campeonato Panamericano de Levantamiento de Pesas', alcance: 'INTERNACIONAL', ciclo: true, inicio: '2026-09-02', fin: '2026-09-06', lugar: 'Cartagena, Colombia', organismo: 'Federación Colombiana de Levantamiento de Pesas', paises: 10, sedes: ['Coliseo de Combate de Cartagena'], gestor: { nombre: 'Andrés Felipe Mora', rol: 'Gestor de evento' }, descripcion: 'Campeonato continental de levantamiento de pesas con deportistas de 10 países.' },
     { code: 'nacionales-juveniles-2026', nombre: 'Juegos Juveniles Internacionales 2026 · Fase Clasificatoria', alcance: 'INTERNACIONAL', ciclo: true, inicio: '2026-09-14', fin: '2026-09-20', lugar: 'Ibagué, Colombia', organismo: 'Ministerio del Deporte', paises: 9, sedes: ['Unidad Deportiva Peñón', 'Coliseo Cubierto Ibagué'], gestor: { nombre: 'Camilo Restrepo', rol: 'Gestor de evento' }, descripcion: 'Fase clasificatoria de los Juegos Juveniles Internacionales con deportistas de nueve países.' },
     { code: 'suram-ciclismo-2026', nombre: 'Campeonato Suramericano de Ciclismo', alcance: 'INTERNACIONAL', ciclo: true, inicio: '2026-12-02', fin: '2026-12-06', lugar: 'Medellín, Colombia', organismo: 'Federación Colombiana de Ciclismo', paises: 9, sedes: ['Velódromo Martín Emilio Rodríguez'], gestor: { nombre: 'Marcela Duarte', rol: 'Gestor de evento' }, descripcion: 'Campeonato continental de ciclismo de pista y ruta.' },
-    { code: 'gp-atletismo-2026', nombre: 'Gran Prix Internacional de Atletismo', alcance: 'INTERNACIONAL', ciclo: false, inicio: '2026-09-11', fin: '2026-09-12', lugar: 'Bogotá, Colombia', organismo: 'Federación Colombiana de Atletismo', paises: 8, sedes: ['Estadio El Campín'], gestor: { nombre: 'Julián Pardo', rol: 'Gestor de evento' }, descripcion: 'Reunión internacional de atletismo en pista.' }
+    { code: 'gp-atletismo-2026', nombre: 'Gran Prix Internacional de Atletismo', alcance: 'INTERNACIONAL', ciclo: false, inicio: '2026-09-11', fin: '2026-09-12', lugar: 'Bogotá, Colombia', organismo: 'Federación Colombiana de Atletismo', paises: 8, sedes: ['Estadio El Campín'], gestor: { nombre: 'Julián Pardo', rol: 'Gestor de evento' }, descripcion: 'Reunión internacional de atletismo en pista.' },
+    { code: 'centroamericanos-sd-2026', nombre: 'XXV Juegos Centroamericanos y del Caribe Santo Domingo 2026', alcance: 'INTERNACIONAL', ciclo: true, inicio: '2026-07-24', fin: '2026-08-08', lugar: 'Santo Domingo, República Dominicana', organismo: 'Comité Olímpico Colombiano', paises: 12, sedes: ['Estadio Olímpico Félix Sánchez'], gestor: { nombre: 'Verónica Alvarado', rol: 'Gestor de evento' }, descripcion: 'Juegos multideportivos de Centroamérica y el Caribe con delegación colombiana.' }
   ];
 
   /* Evento real: mezcla los metadatos de OLC_REAL.evento sobre el stub (aceptando claves es/en). */
@@ -188,6 +190,12 @@
 
   function medallaDe(puesto, estadoPrueba) {
     return estadoPrueba === 'Finalizado' && puesto >= 1 && puesto <= 3 ? ['Oro', 'Plata', 'Bronce'][puesto - 1] : null;
+  }
+  /* Solo la ronda que entrega medallas se pinta como medalla; el dato queda intacto para el medallero (DC-QA). */
+  function rondaPremia(r) {
+    r = String(r || '');
+    var final = /(^|[\s,\-])final(es)?\b/i.test(r) && !/cuartos de final|octavos de final|semi/i.test(r);
+    return !r || final || /medalla|\boro\b|bronce/i.test(r) || !/grupo|clasificaci|clasificator|preliminar|qualifier|semi|cuartos|octavos|serie|regata|carrera|ronda|round|combate|partido|eliminator|repechaje|heat|etapa/i.test(r);
   }
   function sumaMedallas(lista) {
     var m = { oro: 0, plata: 0, bronce: 0, total: 0 };
@@ -293,6 +301,8 @@
       if (p.match) p.match = { a: p.match.a, b: p.match.b, marcador: null, ganador: null };
       p.resumen = null;
     }
+    var premia = rondaPremia(p.ronda || p.fase);
+    p.filas.forEach(function (f) { f.premia = premia; }); p.colombianos.forEach(function (c) { c.premia = premia; });
     p.participa = p.colombianos.length > 0;
     p.resumen = p.resumen && p.estado === 'Finalizado' ? p.resumen : calcularResumen(p);
     return p;
@@ -300,7 +310,7 @@
 
   /* ---- Contrato de lectura (sin HTML) ---- */
   function filaDe(f, colombiano) {
-    return { tipo: 'fila', puesto: f.puesto, deportista: f.deportista, pais: f.pais, paisNombre: f.paisNombre || NOMBRE_PAIS[f.pais] || f.pais, marca: f.marca == null ? null : f.marca, medalla: f.medalla || null, colombiano: colombiano };
+    return { tipo: 'fila', puesto: f.puesto, deportista: f.deportista, pais: f.pais, paisNombre: f.paisNombre || NOMBRE_PAIS[f.pais] || f.pais, marca: f.marca == null ? null : f.marca, medalla: f.medalla || null, premia: f.premia, colombiano: colombiano };
   }
   function resultadoFilas(prueba, top) {
     if (!prueba) return [];
@@ -347,6 +357,12 @@
   }
 
   function paisNombre(iso2) { return iso2 ? (NOMBRE_PAIS[String(iso2).toUpperCase()] || (REAL && REAL.paisesNombres && REAL.paisesNombres[String(iso2).toUpperCase()]) || String(iso2).toUpperCase()) : ''; }
+  /* Medalla <nao-award> sin cinta ni sombra. Edición única del ciclo olímpico: internacional (shared/awards.js). */
+  var EDICION_MEDALLA = 'international';
+  function medalla(metal, icono, size, extra) {
+    return '<nao-award kind="medal" edition="' + EDICION_MEDALLA + '" metal="' + metal + '" icon="' + icono + '" size="' + size + '"' + (extra == null ? ' ribbon="false" shadow="false" animated="false"' : extra) + '></nao-award>';
+  }
+
   /* Bandera de flagcdn.com (hotlink; no se descargan al repo). null si no es ISO-2. */
   function bandera(iso2, w) {
     if (typeof iso2 !== 'string' || !/^[A-Za-z]{2}$/.test(iso2)) return null;
@@ -445,7 +461,7 @@
     HOY: HOY, SEXO: SEXO, DIAS: DIAS_ES,
     eventos: function () { return EVENTOS.map(function (e) { var o = Object.assign({}, e); o.estado = estado(e); return o; }); },
     estado: estado, datosDe: datosDe,
-    colombiaDia: colombiaDia, resultadoFilas: resultadoFilas, bandera: bandera, paisNombre: paisNombre, colombiaEtiqueta: colombiaEtiqueta, colombianoEtiqueta: colombianoEtiqueta,
+    colombiaDia: colombiaDia, resultadoFilas: resultadoFilas, bandera: bandera, medalla: medalla, paisNombre: paisNombre, colombiaEtiqueta: colombiaEtiqueta, colombianoEtiqueta: colombianoEtiqueta,
     fechaLarga: fechaLarga, fechaCorta: fechaCorta, diaCorto: diaCorto
   };
   /* Solo se registra lo de Colombia: Deportes y Calendario reciben únicamente las pruebas con colombianos y sus deportes.
