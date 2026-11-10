@@ -70,9 +70,9 @@
         var h = '';
         if (!ds.length) return fl(0, ' lp-mdet--v lp-mdet--end', '<td></td><td colspan="6"><b>Esta delegación aún no tiene detalle por deporte.</b> Sus ' + r.total + (r.total === 1 ? ' medalla está' : ' medallas están') + ' en el total.</td>');
         /* El chip del país va oculto y ocupa su mismo ancho: el deporte arranca justo bajo el nombre */
-        var sp = '<span class="lp-mct"><span class="lp-mdet-sp" aria-hidden="true">' + L.cc(r.pais, r.paisNombre) + '</span>';
+        var fl0 = '<span class="lp-mdet-fl" aria-hidden="true">' + L.cc(r.pais, r.paisNombre) + '</span>';
         ds.forEach(function (d, i) {
-          h += fl(i, (i % 2 ? ' lp-mdet--z' : '') + (i === ds.length - 1 ? ' lp-mdet--end' : ''), '<td></td><td>' + sp + '<span>' + esc(d.deporteNombre) + '</span></span></td><td class="lp-r' + (d.oro ? '' : ' is-0') + '">' + d.oro + '</td><td class="lp-r' + (d.plata ? '' : ' is-0') + '">' + d.plata + '</td><td class="lp-r' + (d.bronce ? '' : ' is-0') + '">' + d.bronce + '</td><td class="lp-r lp-mt">' + d.total + '</td><td></td>');
+          h += fl(i, (i % 2 ? ' lp-mdet--z' : '') + (i === ds.length - 1 ? ' lp-mdet--end' : ''), '<td></td><td><span class="lp-mct"><span class="lp-mdet-sp">' + fl0 + '<span class="lp-mico">' + (window.OLC && OLC.iconoDeporte ? OLC.iconoDeporte(d.deporte, '', 18) : '') + '</span></span><span>' + esc(d.deporteNombre) + '</span></span></td><td class="lp-r' + (d.oro ? '' : ' is-0') + '">' + d.oro + '</td><td class="lp-r' + (d.plata ? '' : ' is-0') + '">' + d.plata + '</td><td class="lp-r' + (d.bronce ? '' : ' is-0') + '">' + d.bronce + '</td><td class="lp-r lp-mt">' + d.total + '</td><td></td>');
         });
         return h;
       };

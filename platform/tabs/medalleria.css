@@ -299,9 +299,11 @@
 .nwtab-md-tb tbody tr.nwtab-md-det--z td { background: color-mix(in srgb, var(--nwtab-pri) 7%, #fff); }
 .nwtab-md-tb tbody tr.nwtab-md-det--end td:first-child { border-bottom-left-radius: 12px; }
 .nwtab-md-tb tbody tr.nwtab-md-det--end td:last-child { border-bottom-right-radius: 12px; }
-.nwtab-md-tb tbody tr.nwtab-md-det--v td { padding-bottom: 14px; font-weight: 400; color: var(--nwtab-mut); }
+.nwtab-md-tb tbody tr.nwtab-md-det--v td { padding: 40px 16px; text-align: center; vertical-align: middle; font-weight: 400; color: var(--nwtab-mut); }
 .nwtab-md-tb tbody tr.nwtab-md-det--v b { color: inherit; font-weight: 800; }
-.nwtab-md-det__sp { visibility: hidden; }
+.nwtab-md-det__sp { position: relative; display: inline-flex; }
+.nwtab-md-det__fl { visibility: hidden; display: inline-flex; }
+.nwtab-md-det__sp .nwtab-md-ico { position: absolute; right: 0; top: 50%; transform: translateY(-50%); margin: 0; }
 
 /* Medallas reales (nao-award) donde antes había puntos de color: leyenda, comparación con el rival y Total */
 .nwtab-md-lgm, .nwtab-md-vs__ic { display: inline-flex; align-items: center; line-height: 0; }
@@ -357,3 +359,5 @@
 .nwtab-md-tb.nwtab-md-tb--dep tbody tr.nwtab-md-row:hover td { background: color-mix(in srgb, var(--nwtab-pri) 7%, #fff); }
 .nwtab-md-dm { display: inline-flex; align-items: center; gap: 8px; }
 .nwtab-md-sub { display: block; font-weight: 400; }
+
+.nwtab-md-ico { display: inline-flex; vertical-align: middle; margin-right: 8px; color: var(--naotech-color-text-secondary, #5b6472); }

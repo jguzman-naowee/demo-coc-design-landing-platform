@@ -16,6 +16,7 @@
   function sx(k, t) { return '<span class="nwtab-mh">' + N.sexIco(k) + '<span class="nwtab-md-th">' + t + '</span></span>'; }
   function pct(a, b) { if (!b) return '0'; var s = (a / b * 100).toFixed(1).replace('.', ','); return s.replace(/,0$/, ''); }
   function ordDe(n) { return n + '.º'; }
+  function ico(c) { return window.OLC && OLC.iconoDeporte ? OLC.iconoDeporte(c, '', 18) : ''; }
   function plural(n, s, p) { return n + ' ' + (n === 1 ? s : p); }
 
   /* Un solo recorrido: medallas por país/deporte (vía data.medallero, la misma regla que el resto de la plataforma). */
@@ -203,7 +204,7 @@
     shown.forEach(function (d, i) {
       var c = d.co, lead = c.pos === 1, w = d.oros ? c.oro / d.oros * 100 : 0, l = d.m[0];
       var det = RL ? (M.detDep[d.code] || []) : [], gid = 'md-dd-' + d.code;
-      h += '<tr' + (RL ? ' class="nwtab-md-row" data-q="' + esc(N.norm(d.nombre)) + '"' : '') + '><td class="nwtab-md-c1">' + rk(i + 1) + '</td><td><span class="nwtab-dn">' + esc(d.nombre) + '</span></td>' +
+      h += '<tr' + (RL ? ' class="nwtab-md-row" data-q="' + esc(N.norm(d.nombre)) + '"' : '') + '><td class="nwtab-md-c1">' + rk(i + 1) + '</td><td>' + (RL ? '<span class="nwtab-md-ico">' + ico(d.code) + '</span>' : '') + '<span class="nwtab-dn">' + esc(d.nombre) + '</span></td>' +
         '<td class="nwtab-r"><span class="nwtab-n' + (c.oro ? '' : ' is-0') + '">' + c.oro + '</span></td><td class="nwtab-r"><span class="nwtab-n' + (c.plata ? '' : ' is-0') + '">' + c.plata + '</span></td><td class="nwtab-r"><span class="nwtab-n' + (c.bronce ? '' : ' is-0') + '">' + c.bronce + '</span></td>' +
         '<td class="nwtab-r"><b class="nwtab-n nwtab-n--t">' + c.total + '</b></td>' +
         (RL ? '<td class="nwtab-md-cx"><button type="button" class="nwtab-md-exp" data-md-exp="' + gid + '" data-k="' + gid + '" aria-expanded="' + !!(ui.dOpen && ui.dOpen[gid]) + '" aria-label="Quién ganó cada medalla en ' + esc(d.nombre) + '"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5 7.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>' : '<td class="nwtab-md-hide-s">' + (d.oros ? '<span class="nwtab-md-w"><span class="nwtab-md-w__tr" aria-hidden="true"><span style="width:' + w + '%"></span></span><span class="nwtab-md-w__t">' + c.oro + ' de ' + d.oros + '</span></span>' : '<span class="nwtab-md-mut">Sin oros en el deporte</span>') + '</td>' +
@@ -338,9 +339,9 @@
     var h = '';
     if (!ds.length) return fl(0, ' nwtab-md-det--v nwtab-md-det--end', '<td></td><td colspan="6"><b>Esta delegación aún no tiene detalle por deporte.</b> Sus ' + plural(r.total, 'medalla está', 'medallas están') + ' en el total.</td>');
     /* El chip del país va oculto y ocupa su mismo ancho: el deporte arranca justo bajo el nombre */
-    var sp = '<span class="nwtab-dg"><span class="nwtab-md-det__sp" aria-hidden="true">' + N.cc(r.pais, r.paisNombre) + '</span>';
+    var fl0 = '<span class="nwtab-md-det__fl" aria-hidden="true">' + N.cc(r.pais, r.paisNombre) + '</span>';
     ds.forEach(function (d, i) {
-      h += fl(i, (i % 2 ? ' nwtab-md-det--z' : '') + (i === ds.length - 1 ? ' nwtab-md-det--end' : ''), '<td></td><td>' + sp + '<span>' + esc(d.deporteNombre) + '</span></span></td>' +
+      h += fl(i, (i % 2 ? ' nwtab-md-det--z' : '') + (i === ds.length - 1 ? ' nwtab-md-det--end' : ''), '<td></td><td><span class="nwtab-dg"><span class="nwtab-md-det__sp">' + fl0 + '<span class="nwtab-md-ico">' + ico(d.deporte) + '</span></span><span>' + esc(d.deporteNombre) + '</span></span></td>' +
         ['oro', 'plata', 'bronce'].map(function (k) { return '<td class="nwtab-r"><span class="nwtab-n' + (d[k] ? '' : ' is-0') + '">' + d[k] + '</span></td>'; }).join('') +
         '<td class="nwtab-r"><b class="nwtab-n nwtab-n--t">' + d.total + '</b></td><td></td>');
     });
@@ -360,9 +361,6 @@
         '<td class="nwtab-md-cx"><button type="button" class="nwtab-md-exp" data-md-exp="' + id + '" aria-expanded="false" aria-controls="' + ids.join(' ') + '" aria-label="Medallas de ' + esc(r.paisNombre) + ' por deporte"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5 7.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td></tr>' + detalle(r, id, ds);
     });
     h += '</tbody></table></div></section></div>';
-    if (RL) { /* el desglose por país compara países: en roles.html la tabla queda plana */
-      h = h.replace(/<th scope="col" class="nwtab-md-cx">[\s\S]*?<\/th>/, '').replace(/<td class="nwtab-md-cx">[\s\S]*?<\/td>/g, '').replace(/<tr class="nwtab-md-det[^>]*>[\s\S]*?<\/tr>/g, '').replace(/nwtab-md-row/g, 'nwtab-md-fila');
-    }
     return h;
   }
 
@@ -379,8 +377,8 @@
   });
   /* Va en la columna de Indicadores, debajo de ellos. */
   function bloqueRegistro() {
-    if (RL && RL.rol !== 'admin') return '<div class="nwtab-cap-reg"><span class="nwtab-cap-mut">Última actualización: ' + esc(OLC.fechaCorta(OLC.HOY)) + '</span></div>';
-    return '<div class="nwtab-cap-reg"><h3 class="nwtab-md-card__t">Registro de medallas</h3><span class="nwtab-cap-mut">Última actualización: ' + esc(OLC.fechaCorta(OLC.HOY)) + '</span>' +
+    if (RL && RL.rol !== 'admin') return '';
+    return '<div class="nwtab-cap-reg"><h3 class="nwtab-md-card__t">Registro de medallas</h3>' +
       '<nwt-button id="md-registrar" data-md-modo="captura">Registrar medallas</nwt-button></div>';
   }
 

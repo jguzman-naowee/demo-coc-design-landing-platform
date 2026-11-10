@@ -45,6 +45,8 @@
     <button type="button" class="tt-ib" id="close" aria-label="Cerrar">×</button></span></div>
   <div class="tt-grp">Prototipo</div>
   <div class="tt-seg" role="group" aria-label="Prototipo" id="segFront"></div>
+  <div class="tt-grp">Rol en la plataforma</div>
+  <div class="tt-seg" role="group" aria-label="Rol" id="segRol"></div>
   <div class="tt-grp">Escenario de la landing</div>
   <div class="tt-seg" role="group" aria-label="Escenario" id="segEsc"></div>
   <div class="tt-grp">Momento del evento</div>
@@ -60,6 +62,8 @@
   var EVENTOS = [['Finalizado', 'copa-coc-cali-2026'], ['En curso', 'jja-2026'], ['Próximo', 'intercolegiados-2026']];
   var ESC = [['', 'Habitual'], ['2026-10-05', 'Sin eventos en curso']];
   var q = new URLSearchParams(location.search), hoy = /^\d{4}-\d{2}-\d{2}$/.test(q.get('hoy') || '') ? q.get('hoy') : '';
+  var ROLES = [['comite', 'Comité Olímpico'], ['admin', 'Admin']];
+  var rol = q.get('rol') === 'admin' ? 'admin' : 'comite';
   var front = FRONTS[q.get('f')] ? q.get('f') : 'platform';
   var hash = location.hash || FRONTS[front].home;
   var frame = document.getElementById('stage'), panel = document.getElementById('panel'), launch = document.getElementById('launch');
@@ -73,16 +77,18 @@
     document.getElementById('segEvt').innerHTML = EVENTOS.map(function (e) {
       var on = e[1] === codigo();
       return '<button type="button" data-e="' + e[1] + '" class="' + (on ? 'is-active' : '') + '" aria-pressed="' + on + '">' + esc(e[0]) + '</button>'; }).join('');
+    document.getElementById('segRol').innerHTML = ROLES.map(function (r) { var on = r[0] === rol; return '<button type="button" data-r="' + r[0] + '" class="' + (on ? 'is-active' : '') + '" aria-pressed="' + on + '">' + r[1] + '</button>'; }).join('');
     document.getElementById('nueva').href = url();
     document.getElementById('segEsc').innerHTML = ESC.map(function (e) { var on = e[0] === hoy; return '<button type="button" data-h="' + e[0] + '" class="' + (on ? 'is-active' : '') + '" aria-pressed="' + on + '">' + e[1] + '</button>'; }).join('');
     document.title = FRONTS[front].label + ' · Demo Eventos Ciclo Olímpico';
-    try { history.replaceState(null, '', '?f=' + front + (hoy ? '&hoy=' + hoy : '') + hash); } catch (e) {}
+    try { history.replaceState(null, '', '?f=' + front + (hoy ? '&hoy=' + hoy : '') + (rol === 'admin' ? '&rol=admin' : '') + hash); } catch (e) {}
   }
-  function url() { return FRONTS[front].url + (hoy ? '?hoy=' + hoy : '') + hash; }
+  function url() { var a = []; if (hoy) a.push('hoy=' + hoy); if (front === 'platform') a.push('rol=' + rol); return FRONTS[front].url + (a.length ? '?' + a.join('&') : '') + hash; }
   function cargar() { frame.src = url(); pintar(); }
 
   panel.addEventListener('click', function (e) {
-    var f = e.target.closest('[data-f]'), v = e.target.closest('[data-e]'), h = e.target.closest('[data-h]');
+    var f = e.target.closest('[data-f]'), v = e.target.closest('[data-e]'), h = e.target.closest('[data-h]'), r = e.target.closest('[data-r]');
+    if (r && r.dataset.r !== rol) { rol = r.dataset.r; cargar(); }
     if (h) { hoy = h.dataset.h; cargar(); }
     if (f && f.dataset.f !== front) {
       front = f.dataset.f;

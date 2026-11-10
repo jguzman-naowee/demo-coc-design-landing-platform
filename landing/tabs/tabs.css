@@ -651,7 +651,9 @@ dialog.lp-dp-m::backdrop { background: rgb(10 10 10 / .6); }
 .lp-mt-tb tbody tr.lp-mdet--end td:last-child { border-bottom-right-radius: 12px; }
 .lp-mt-tb tbody tr.lp-mdet--v td { height: auto; padding-bottom: 16px; font-weight: 400; color: var(--lp-muted); }
 .lp-mt-tb tbody tr.lp-mdet--v b { color: var(--lp-ink); }
-.lp-mdet-sp { visibility: hidden; }
+.lp-mdet-sp { position: relative; display: inline-flex; }
+.lp-mdet-fl { visibility: hidden; display: inline-flex; }
+.lp-mdet-sp .lp-mico { position: absolute; right: 0; top: 50%; transform: translateY(-50%); margin: 0; }
 .lp-mt-tb .lp-mdet .is-0 { color: var(--lp-subtle); }
 /* Total (DC-163): las tres medallas en línea, solapadas la mitad de su ancho (18px → -9px) */
 .lp-mt-tb .lp-md.lp-md--tri { display: inline-flex; align-items: center; gap: 6px; width: auto; height: auto; padding: 0; }
@@ -663,3 +665,5 @@ dialog.lp-dp-m::backdrop { background: rgb(10 10 10 / .6); }
 .lp-tri > span { flex: 0 0 18px; width: 18px; height: 18px; }
 .lp-tri > span > nao-award { display: block; width: 18px; height: 18px; }
 .lp-mt-tb .lp-md--tri { white-space: nowrap; }
+
+.lp-mico { display: inline-flex; vertical-align: middle; margin-right: 8px; color: #5b6472; }
