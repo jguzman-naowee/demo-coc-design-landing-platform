@@ -235,7 +235,7 @@ nwt-tag-group .nwt-tag-group__tag{min-height:34px}
 /* evita que contenido ancho (pestañas, tablas) ensanche la página en móvil */
 .nws-page>*,.nws-event-detail-tabs,.nws-event-detail-tabs__panel,.nws-events-catalog>*{min-width:0}
 .nws-event-detail-tabs__panel{overflow-x:auto}
-.nws-event-detail-tabs__panel.is-info{display:flex;flex-direction:column;gap:var(--naotech-sizing-18);min-height:100vh} /* Información es corta: el alto garantiza scroll y que las pestañas se peguen como en las demás */
+.nws-event-detail-tabs__panel.is-info{display:flex;flex-direction:column;gap:var(--naotech-sizing-18)} /* DC-169: sin alto forzado, para no dejar espacio vacío ni scroll de más */
 html{overflow-x:hidden}
 body{overflow-x:clip}
 
@@ -293,5 +293,8 @@ body:has(.nws-sidebar.nwt-sidebar--mode-drawer.nwt-sidebar--open)::after{content
 @container nws (min-width:768px){.nws-event-detail__name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal}}
 @container nws (max-width:767px){.nws-event-detail__name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}}
 /* DC-107: el hero sube la barra; el alto mínimo garantiza que se pegue también en pestañas cortas. La etiqueta de foto estorba la descripción en móvil. */
-.nws-event-detail-tabs__panel{min-height:100vh}
 @container nws (max-width:767px){.nws-event-detail__head .nws-ph__tag{display:none}}
+
+/* Imagen del hero del evento: a sangre, detrás del velo; el degradado .nws-ph queda de respaldo mientras carga */
+.nws-event-detail__img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:right center}
+.nws-event-detail__credit{position:absolute;right:12px;bottom:8px;z-index:1;font-size:11px;line-height:1.2;color:rgba(255,255,255,.85);text-shadow:0 1px 2px rgba(0,0,0,.7)}

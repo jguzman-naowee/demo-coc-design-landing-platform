@@ -124,8 +124,9 @@
     ['stats/stats-gimnasia-centroamericanos.webp', 'Gimnasia, Centroamericanos']
   ];
   /* Afiche por code del prototipo: solo coincidencias exactas; el resto queda en degradado. */
-  var FOTO = { 'suramericanos-sante-fe-2026': 'afiches/event-jssf2026.webp', 'intercolegiados-2026': 'afiches/event-jin2026.webp' };
-  var HERO_FOTO = { 'intercolegiados-2026': 'hero/hero-intercolegiados.webp' };
+  var FOTO = { 'suramericanos-sante-fe-2026': 'afiches/event-jssf2026.webp', 'intercolegiados-2026': 'afiches/event-jin2026.webp', 'centroamericanos-sd-2026': 'afiches/event-jcc2026.webp', 'copa-coc-cali-2026': 'afiches/event-copa-cali.webp' };
+  var HERO_FOTO = { 'suramericanos-sante-fe-2026': 'hero/hero-santafe.webp', 'centroamericanos-sd-2026': 'hero/hero-centroamericanos.webp', 'intercolegiados-2026': 'hero/hero-intercolegiados.webp', 'copa-coc-cali-2026': 'hero/hero-copa-cali.webp' };
+  var HERO_CREDITO = { 'copa-coc-cali-2026': 'Foto: Gersonparra11 · CC BY-SA 3.0 · Wikimedia Commons' };
   var PARTNERS = [
     ['odesur', 'Organización Deportiva Suramericana', 'org'], ['odebol', 'Organización Deportiva Bolivariana', 'org'],
     ['world-games', 'The World Games', 'org'], ['wada', 'World Anti-doping Agency', 'org'], ['mindeporte', 'Ministerio del Deporte', 'org'],
@@ -708,7 +709,7 @@
     var sedes = ev.sedes || [];
     /* DC-112: el hero va entre el breadcrumb y la nav, fuera del panel; el contador sube a la fila de badges. */
     var hero =
-      '<section class="lp-dhero" aria-label="Encabezado del evento"><div class="lp-ph' + variante(ev.code) + '"><span class="lp-ph__tag">Foto del evento</span></div>' +
+      '<section class="lp-dhero" aria-label="Encabezado del evento"><div class="lp-ph' + variante(ev.code) + '">' + (HERO_FOTO[ev.code] ? fotoImg(ev.code, true) : '') + '</div>' + (HERO_CREDITO[ev.code] ? '<span class="lp-dhero__credit">' + esc(HERO_CREDITO[ev.code]) + '</span>' : '') +
       '<div class="lp-hero__veil"></div><div class="lp-wrap lp-dhero__in"><div class="lp-dhero__copy">' +
       ((ev.ciclo || contador(ev, estado)) ? '<div class="lp-dhero__badges">' + (ev.ciclo ? '<span class="lp-cycle">Ciclo Olímpico</span>' : '') + contador(ev, estado) + '</div>' : '') +
       '<h2 class="lp-dhero__title">' + esc(ev.nombre) + '</h2><p>' + esc(limpiarDesc(ev.descripcion)) + '</p></div></div></section>';

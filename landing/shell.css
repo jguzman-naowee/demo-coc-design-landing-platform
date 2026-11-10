@@ -485,3 +485,5 @@ span.lp-sxi { width: auto; justify-content: flex-start; height: 22px; gap: 4px; 
 
 .lp-nada__a { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px 20px; margin-top: 4px; }
 .lp-nada__l { font-weight: 700; color: var(--lp-ink-soft); text-decoration: underline; }
+
+.lp-dhero__credit { position: absolute; right: 12px; bottom: 6px; z-index: 1; font-size: 11px; line-height: 1.2; color: rgb(255 255 255 / .85); text-shadow: 0 1px 2px rgb(0 0 0 / .7); }
