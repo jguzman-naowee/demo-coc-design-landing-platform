@@ -2,6 +2,7 @@
 (function () {
   var N = window.NWS, esc = N.esc, nf = N.num;
   window.Tabs = window.Tabs || {};
+  var RL = window.MED_ROLES || null; /* solo lo define roles.html */
 
   var VISTA_DEP = 7, VISTA_GEN = 7;
   var SEXO = { F: 'Mujeres', M: 'Hombres', X: 'Mixtas', U: 'Sin género' };
@@ -10,6 +11,8 @@
   function dotMed(k) { return OLC.medalla({ oro: 'gold', plata: 'silver', bronce: 'bronze' }[k], 'none', 18); }
   /* Puesto: medalla con número para 1.º–3.º; el resto, número simple */
   function rk(n) { return n <= 3 ? '<span class="nwtab-md-rkm">' + OLC.medalla(['gold', 'silver', 'bronze'][n - 1], n, 34) + '</span>' : '<span class="nwtab-md-rk is-plain">' + n + '</span>'; }
+  /* Total: oro, plata y bronce en línea, solapadas la mitad de su ancho */
+  function totalH() { return '<span class="nwtab-mh"><span class="nwtab-tri" aria-hidden="true">' + ['oro', 'plata', 'bronce'].map(function (k) { return '<span>' + dotMed(k) + '</span>'; }).join('') + '</span><span class="nwtab-md-th">Total</span></span>'; }
   function sx(k, t) { return '<span class="nwtab-mh">' + N.sexIco(k) + '<span class="nwtab-md-th">' + t + '</span></span>'; }
   function pct(a, b) { if (!b) return '0'; var s = (a / b * 100).toFixed(1).replace('.', ','); return s.replace(/,0$/, ''); }
   function ordDe(n) { return n + '.º'; }
@@ -62,6 +65,18 @@
         suma(p);
       });
     });
+    /* Detalle de Colombia por deporte: quién ganó qué, en qué prueba y de qué género (incluye lo registrado a mano). */
+    var detDep = {};
+    function addDet(dep, x) { (detDep[dep] = detDep[dep] || []).push(x); }
+    data.pruebas.forEach(function (p) {
+      if (p.estado !== 'Finalizado') return;
+      var vistos = {};
+      p.filas.forEach(function (f) { if (f.medalla && f.pais === 'CO') { vistos[f.deportista] = 1; addDet(p.deporte, { n: f.deportista, m: String(f.medalla).toLowerCase(), p: p.nombre, s: p.sexo }); } });
+      (p.colombianos || []).forEach(function (c) { if (c.medalla && !vistos[c.deportista]) addDet(p.deporte, { n: c.deportista, m: String(c.medalla).toLowerCase(), p: p.nombre, s: p.sexo }); });
+    });
+    OLC.capturadas(data.evento.code).forEach(function (x) { if (x.pais === 'CO') addDet(x.deporte, { n: x.deportista, m: x.metal, p: x.pruebaNombre || x.prueba, s: x.sexo }); });
+    var ORD = { oro: 0, plata: 1, bronce: 2 };
+    Object.keys(detDep).forEach(function (k) { detDep[k].sort(function (a, b) { return ORD[a.m] - ORD[b.m] || a.n.localeCompare(b.n); }); });
     var gRows = Object.keys(gDep).map(function (k) { var g = gDep[k]; g.t = g.F + g.M + g.X + g.U; return g; })
       .sort(function (a, b) { return b.t - a.t || a.nombre.localeCompare(b.nombre); });
 
@@ -75,7 +90,7 @@
     var insG = null;
     try { var ci = window.Tabs && Tabs.inscripciones && Tabs.inscripciones.calc ? Tabs.inscripciones.calc(data) : null; insG = ci && ci.tot ? { F: ci.tot.F || 0, M: ci.tot.M || 0, X: ci.tot.X || 0 } : null; } catch (e) { insG = null; }
     if (!insG || !(insG.F + insG.M + insG.X)) insG = { F: gTot.F * 9 + 6, M: gTot.M * 9 + 6, X: gTot.X * 4 + 2 };
-    return { insG: insG, gen: gen, todos: todos, co: co, oroEv: oroEv, totEv: totEv, deps: deps, cerca: cercaL, gRows: gRows, gTot: gTot };
+    return { insG: insG, gen: gen, todos: todos, co: co, oroEv: oroEv, totEv: totEv, deps: deps, cerca: cercaL, gRows: gRows, gTot: gTot, detDep: detDep };
   }
 
   /* Rival según el puesto de Colombia: el líder, salvo que Colombia lo sea o ya sea el de arriba. */
@@ -107,7 +122,7 @@
   }
 
   function leyenda(items) {
-    return '<ul class="nwtab-md-leg">' + items.map(function (it) { return '<li><i class="nwtab-md-dot" style="background:' + it[1] + '" aria-hidden="true"></i>' + it[0] + '</li>'; }).join('') + '</ul>';
+    return '<ul class="nwtab-md-leg">' + items.map(function (it) { return '<li>' + (it[2] ? '<span class="nwtab-md-lgm" aria-hidden="true">' + dotMed(it[2]) + '</span>' : '<i class="nwtab-md-dot" style="background:' + it[1] + '" aria-hidden="true"></i>') + it[0] + '</li>'; }).join('') + '</ul>';
   }
 
   function nombrePais(iso, nombre, own) {
@@ -117,7 +132,7 @@
   /* 1. Medallero por país: barras apiladas oro/plata/bronce, con texto equivalente para lectores de pantalla. */
   function secPais(M) {
     var max = M.gen.reduce(function (a, r) { return Math.max(a, r.total); }, 1);
-    var h = '<div class="nwtab-md-sec">' + head('Medallero por país', 'Distribución apilada · ' + plural(M.gen.length, 'país', 'países'), leyenda([['Oro', 'var(--md-oro)'], ['Plata', 'var(--md-plata)'], ['Bronce', 'var(--md-bronce)']]), 'md-pais') + '<section class="nwtab-md-card" aria-labelledby="md-pais">' +
+    var h = '<div class="nwtab-md-sec">' + head('Medallero por país', 'Distribución apilada · ' + plural(M.gen.length, 'país', 'países'), leyenda([['Oro', 'var(--md-oro)', 'oro'], ['Plata', 'var(--md-plata)', 'plata'], ['Bronce', 'var(--md-bronce)', 'bronce']]), 'md-pais') + '<section class="nwtab-md-card" aria-labelledby="md-pais">' +
       '<ul class="nwtab-md-stack">';
     M.gen.forEach(function (r) {
       var own = r.pais === 'CO';
@@ -178,19 +193,25 @@
     var rows = M.deps.filter(function (d) { return d.co; }).sort(function (a, b) {
       return b.co.oro - a.co.oro || b.co.plata - a.co.plata || b.co.bronce - a.co.bronce || a.nombre.localeCompare(b.nombre);
     });
-    var h = '<div class="nwtab-md-sec">' + head('Colombia en cada deporte', 'Medallas de Colombia, su peso en los oros del deporte y su puesto en el medallero de ese deporte', '', 'md-dep') + '<section class="nwtab-md-card" aria-labelledby="md-dep">';
+    var h = '<div class="nwtab-md-sec">' + head('Colombia en cada deporte', RL ? 'Medallas de Colombia en cada deporte' : 'Medallas de Colombia, su peso en los oros del deporte y su puesto en el medallero de ese deporte', '', 'md-dep') + '<section class="nwtab-md-card" aria-labelledby="md-dep">';
     if (!rows.length) return h + '<div class="nwtab-md-na"><b>Colombia aún no tiene medallas</b><span>Cuando gane la primera, verá aquí en qué deportes.</span></div></section></div>';
     var shown = rows;
+    if (RL) h += '<div class="nwtab-md-q"><nwt-searchbox id="md-dep-q" nwt-size="medium"></nwt-searchbox></div>';
     h += '<div class="nwtab-tw"><table class="nwtab-tb nwtab-md-tb nwtab-md-tb--dep"><caption class="nwtab-sr">Medallas de Colombia por deporte</caption><thead><tr><th scope="col" class="nwtab-md-c1">#</th><th scope="col">Deporte</th>' +
       '<th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('oro') + '<span class=\"nwtab-md-th\">Oro</span></span></th><th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('plata') + '<span class=\"nwtab-md-th\">Plata</span></span></th><th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('bronce') + '<span class=\"nwtab-md-th\">Bronce</span></span></th>' +
-      '<th scope="col" class="nwtab-r">Total</th><th scope="col" class="nwtab-md-hide-s">Oros del deporte que ganó Colombia</th><th scope="col">Puesto en el deporte</th></tr></thead><tbody>';
+      '<th scope="col" class="nwtab-r">' + totalH() + '</th>' + (RL ? '<th scope="col" class="nwtab-md-cx"><span class="nwtab-sr">Detalle por deportista</span></th>' : '<th scope="col" class="nwtab-md-hide-s">Oros del deporte que ganó Colombia</th><th scope="col">Puesto en el deporte</th>') + '</tr></thead><tbody>';
     shown.forEach(function (d, i) {
       var c = d.co, lead = c.pos === 1, w = d.oros ? c.oro / d.oros * 100 : 0, l = d.m[0];
-      h += '<tr><td class="nwtab-md-c1">' + rk(i + 1) + '</td><td><span class="nwtab-dn">' + esc(d.nombre) + '</span></td>' +
+      var det = RL ? (M.detDep[d.code] || []) : [], gid = 'md-dd-' + d.code;
+      h += '<tr' + (RL ? ' class="nwtab-md-row" data-q="' + esc(N.norm(d.nombre)) + '"' : '') + '><td class="nwtab-md-c1">' + rk(i + 1) + '</td><td><span class="nwtab-dn">' + esc(d.nombre) + '</span></td>' +
         '<td class="nwtab-r"><span class="nwtab-n' + (c.oro ? '' : ' is-0') + '">' + c.oro + '</span></td><td class="nwtab-r"><span class="nwtab-n' + (c.plata ? '' : ' is-0') + '">' + c.plata + '</span></td><td class="nwtab-r"><span class="nwtab-n' + (c.bronce ? '' : ' is-0') + '">' + c.bronce + '</span></td>' +
         '<td class="nwtab-r"><b class="nwtab-n nwtab-n--t">' + c.total + '</b></td>' +
-        '<td class="nwtab-md-hide-s">' + (d.oros ? '<span class="nwtab-md-w"><span class="nwtab-md-w__tr" aria-hidden="true"><span style="width:' + w + '%"></span></span><span class="nwtab-md-w__t">' + c.oro + ' de ' + d.oros + '</span></span>' : '<span class="nwtab-md-mut">Sin oros en el deporte</span>') + '</td>' +
-        '<td><span class="nwtab-md-badge' + (lead ? ' is-lead' : '') + '">' + ordDe(c.pos) + ' de ' + d.m.length + '</span>' + (lead ? '' : '<small class="nwtab-md-mut nwtab-md-hide-s"> lidera ' + esc(l.paisNombre) + '</small>') + '</td></tr>';
+        (RL ? '<td class="nwtab-md-cx"><button type="button" class="nwtab-md-exp" data-md-exp="' + gid + '" data-k="' + gid + '" aria-expanded="' + !!(ui.dOpen && ui.dOpen[gid]) + '" aria-label="Quién ganó cada medalla en ' + esc(d.nombre) + '"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5 7.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>' : '<td class="nwtab-md-hide-s">' + (d.oros ? '<span class="nwtab-md-w"><span class="nwtab-md-w__tr" aria-hidden="true"><span style="width:' + w + '%"></span></span><span class="nwtab-md-w__t">' + c.oro + ' de ' + d.oros + '</span></span>' : '<span class="nwtab-md-mut">Sin oros en el deporte</span>') + '</td>' +
+        '<td><span class="nwtab-md-badge' + (lead ? ' is-lead' : '') + '">' + ordDe(c.pos) + ' de ' + d.m.length + '</span>' + (lead ? '' : '<small class="nwtab-md-mut nwtab-md-hide-s"> lidera ' + esc(l.paisNombre) + '</small>') + '</td>') + '</tr>';
+      det.forEach(function (x, j) {
+        h += '<tr class="nwtab-md-det' + (j % 2 ? ' nwtab-md-det--z' : '') + (j === det.length - 1 ? ' nwtab-md-det--end' : '') + '" data-g="' + gid + '" data-qd="' + esc(N.norm(d.nombre)) + '"' + (ui.dOpen && ui.dOpen[gid] ? '' : ' hidden') + '><td></td><td><span class="nwtab-dn">' + esc(x.n) + '</span><small class="nwtab-md-mut nwtab-md-sub">' + esc(x.p) + '</small></td>' +
+          '<td colspan="3"><span class="nwtab-md-dm">' + dotMed(x.m) + '<span>' + { oro: 'Oro', plata: 'Plata', bronce: 'Bronce' }[x.m] + '</span></span></td><td class="nwtab-r">' + esc(SEXO[x.s] || '—') + '</td><td></td></tr>';
+      });
     });
     h += '</tbody></table></div>';
     return h.replace(/<div class="nwtab-tw"><table class="nwtab-tb nwtab-md-tb nwtab-md-tb--dep">[\s\S]*$/, function (t) { return rows.length > VISTA_DEP ? recorte(t, rows.length, ui.dep, 'dep') : t; }) + '</section></div>';
@@ -227,7 +248,7 @@
       '<div class="nwtab-md-ck"><span>Ventaja que nos sacaron</span><strong class="is-neg">' + sg(sNeg) + '</strong><small>en ' + plural(neg.length, 'deporte', 'deportes') + '</small></div>' +
       '<div class="nwtab-md-ck ' + (gap >= 0 ? 'tot--pos' : 'tot--neg') + '"><span>Balance</span><strong class="' + (gap >= 0 ? 'is-pos' : 'is-neg') + '">' + so(gap) + '</strong><small>' + coO + ' frente a ' + rvO + ' oros</small></div></div>';
 
-    function med(n, gana) { return '<span class="nwtab-md-vs__m' + (n ? '' : ' is-0') + (gana ? ' is-win' : '') + '"><i class="nwtab-md-dot nwtab-md-dot--oro" aria-hidden="true"></i>' + n + '</span>'; }
+    function med(n, gana) { return '<span class="nwtab-md-vs__m' + (n ? '' : ' is-0') + (gana ? ' is-win' : '') + '"><span class="nwtab-md-vs__ic" aria-hidden="true">' + dotMed('oro') + '</span>' + n + '</span>'; }
     function row(r) {
       var k = r.d > 0 ? 'pos' : 'neg';
       return '<li class="nwtab-md-vs__r"><span class="nwtab-md-vs__l">' + esc(r.n) + '</span>' + med(r.co, r.d > 0) + med(r.rv, r.d < 0) +
@@ -311,27 +332,99 @@
   }
 
   /* 6. Medallero completo. */
-  function secCompleto(M) {
+  /* Desglose por deporte (PROD-63): filas hermanas en la misma tabla, así oro/plata/bronce/total caen bajo sus columnas. */
+  function detalle(r, id, ds) {
+    var fl = function (i, cls, inner) { return '<tr class="nwtab-md-det' + cls + '" id="' + id + '-' + i + '" data-g="' + id + '" hidden>' + inner + '</tr>'; };
+    var h = '';
+    if (!ds.length) return fl(0, ' nwtab-md-det--v nwtab-md-det--end', '<td></td><td colspan="6"><b>Esta delegación aún no tiene detalle por deporte.</b> Sus ' + plural(r.total, 'medalla está', 'medallas están') + ' en el total.</td>');
+    /* El chip del país va oculto y ocupa su mismo ancho: el deporte arranca justo bajo el nombre */
+    var sp = '<span class="nwtab-dg"><span class="nwtab-md-det__sp" aria-hidden="true">' + N.cc(r.pais, r.paisNombre) + '</span>';
+    ds.forEach(function (d, i) {
+      h += fl(i, (i % 2 ? ' nwtab-md-det--z' : '') + (i === ds.length - 1 ? ' nwtab-md-det--end' : ''), '<td></td><td>' + sp + '<span>' + esc(d.deporteNombre) + '</span></span></td>' +
+        ['oro', 'plata', 'bronce'].map(function (k) { return '<td class="nwtab-r"><span class="nwtab-n' + (d[k] ? '' : ' is-0') + '">' + d[k] + '</span></td>'; }).join('') +
+        '<td class="nwtab-r"><b class="nwtab-n nwtab-n--t">' + d.total + '</b></td><td></td>');
+    });
+    return h;
+  }
+
+  function secCompleto(M, data) {
     var h = '<div class="nwtab-md-sec">' + head('Medallero completo', '', '', 'md-all') + '<section class="nwtab-md-card" aria-labelledby="md-all">' +
       '<div class="nwtab-tw"><table class="nwtab-tb nwtab-md-tb nwtab-md-tb--all"><caption class="nwtab-sr">Medallero completo del evento</caption><thead><tr><th scope="col" class="nwtab-md-c1">Pos.</th><th scope="col">País</th>' +
-      '<th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('oro') + '<span class=\"nwtab-md-th\">Oro</span></span></th><th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('plata') + '<span class=\"nwtab-md-th\">Plata</span></span></th><th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('bronce') + '<span class=\"nwtab-md-th\">Bronce</span></span></th><th scope="col" class="nwtab-r">Total</th></tr></thead><tbody>';
+      '<th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('oro') + '<span class=\"nwtab-md-th\">Oro</span></span></th><th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('plata') + '<span class=\"nwtab-md-th\">Plata</span></span></th><th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('bronce') + '<span class=\"nwtab-md-th\">Bronce</span></span></th><th scope="col" class="nwtab-r">' + totalH() + '</th><th scope="col" class="nwtab-md-cx"><span class="nwtab-sr">Detalle por deporte</span></th></tr></thead><tbody>';
     M.todos.forEach(function (r, i) {
-      var own = r.pais === 'CO';
-      h += '<tr' + (own ? ' class="nwtab-co"' : '') + '><td class="nwtab-md-c1">' + rk(r.pos) + '</td><td>' + nombrePais(r.pais, r.paisNombre, own) + '</td>' +
+      var own = r.pais === 'CO', id = 'md-det-' + r.pais, ds = data.medallasDePais(r.pais), ids = [];
+      for (var j = 0; j < Math.max(ds.length, 1); j++) ids.push(id + '-' + j);
+      h += '<tr class="nwtab-md-row' + (own ? ' nwtab-co' : '') + '"><td class="nwtab-md-c1">' + rk(r.pos) + '</td><td>' + nombrePais(r.pais, r.paisNombre, own) + '</td>' +
         ['oro', 'plata', 'bronce'].map(function (k) { return '<td class="nwtab-r"><span class="nwtab-n' + (r[k] ? '' : ' is-0') + '">' + r[k] + '</span></td>'; }).join('') +
-        '<td class="nwtab-r"><b class="nwtab-n nwtab-n--t">' + r.total + '</b></td></tr>';
+        '<td class="nwtab-r"><b class="nwtab-n nwtab-n--t">' + r.total + '</b></td>' +
+        '<td class="nwtab-md-cx"><button type="button" class="nwtab-md-exp" data-md-exp="' + id + '" aria-expanded="false" aria-controls="' + ids.join(' ') + '" aria-label="Medallas de ' + esc(r.paisNombre) + ' por deporte"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5 7.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td></tr>' + detalle(r, id, ds);
     });
-    return h + '</tbody></table></div></section></div>';
+    h += '</tbody></table></div></section></div>';
+    if (RL) { /* el desglose por país compara países: en roles.html la tabla queda plana */
+      h = h.replace(/<th scope="col" class="nwtab-md-cx">[\s\S]*?<\/th>/, '').replace(/<td class="nwtab-md-cx">[\s\S]*?<\/td>/g, '').replace(/<tr class="nwtab-md-det[^>]*>[\s\S]*?<\/tr>/g, '').replace(/nwtab-md-row/g, 'nwtab-md-fila');
+    }
+    return h;
+  }
+
+  /* «Registrar medallas» (operación) solo existe en la plataforma, nunca en el landing. */
+  function barraModo(modo, data) {
+    if (modo !== 'captura') return '';
+    return '<div class="nwtab-cap-modo"><nwt-button id="md-volver" nwt-variant="quiet" icon="chevron-left" data-md-modo="consulta">Volver a Medallería</nwt-button>' +
+      '<span class="nwtab-cap-mut">' + esc(data.evento.nombre) + ' · Última actualización: ' + esc(OLC.fechaCorta(OLC.HOY)) + '</span></div>';
+  }
+  /* Al registrar no hace falta ver la cabecera del evento: se oculta con una clase en el contenedor del detalle. */
+  var lastUi = null;
+  window.addEventListener('hashchange', function () {
+    if (lastUi && lastUi.modo === 'captura' && !/tab=medalleria/.test(location.hash) && !/^#\/eventos\/[^?]+$/.test(location.hash)) lastUi.modo = 'consulta';
+  });
+  /* Va en la columna de Indicadores, debajo de ellos. */
+  function bloqueRegistro() {
+    if (RL && RL.rol !== 'admin') return '<div class="nwtab-cap-reg"><span class="nwtab-cap-mut">Última actualización: ' + esc(OLC.fechaCorta(OLC.HOY)) + '</span></div>';
+    return '<div class="nwtab-cap-reg"><h3 class="nwtab-md-card__t">Registro de medallas</h3><span class="nwtab-cap-mut">Última actualización: ' + esc(OLC.fechaCorta(OLC.HOY)) + '</span>' +
+      '<nwt-button id="md-registrar" data-md-modo="captura">Registrar medallas</nwt-button></div>';
+  }
+
+  /* Esqueleto mientras cambia el modo: mismo esqueleto de la vista que viene, anunciado como «cargando». */
+  function cargando(modo) {
+    var bar = function (w, h) { return '<span class="nwtab-sk" style="width:' + w + ';height:' + (h || 14) + 'px"></span>'; };
+    var fila = '<div class="nwtab-sk-r">' + bar('34px') + bar('26%') + bar('60px') + bar('60px') + bar('60px') + bar('60px') + '</div>';
+    var h = '<div class="nwtab-sk-w" aria-busy="true"><p class="nwtab-sr" role="status">Cargando ' + (modo === 'captura' ? 'el registro de medallas' : 'la medallería') + '…</p>';
+    if (modo === 'captura') h += bar('280px', 22) + '<div class="nwtab-sk-f">' + bar('220px', 44) + bar('220px', 44) + bar('180px', 44) + '</div>';
+    else h += '<div class="nwtab-sk-f">' + bar('300px', 96) + bar('100%', 96) + '</div>' + bar('220px', 22);
+    return h + '<div class="nwtab-sk-t">' + fila + fila + fila + fila + fila + '</div></div>';
   }
 
   function render(el, ctx) {
     var data = ctx.data, ui = ctx.ui.md = ctx.ui.md || {}, nCol = data.colombia ? data.colombia.participa : 0;
-    var M = calcular(data), h = '<section class="nwtab-tab nwtab-md-root" aria-label="Medallería">';
+    var M = calcular(data), modo = ui.modo || 'consulta', h = '<section class="nwtab-tab nwtab-md-root" aria-label="Medallería">' + barraModo(modo, data);
+    lastUi = ui;
+    var raiz = el.closest('.nws-event-detail'); if (raiz) raiz.classList.toggle('is-registro', modo === 'captura');
+    var bindModo = function () {
+      el.querySelectorAll('[data-md-modo]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var sig = b.getAttribute('data-md-modo'); if (sig === (ui.modo || 'consulta') && !ui.cargando) return;
+          var foco = function () {
+            var id = '#' + (sig === 'captura' ? 'md-volver' : 'md-registrar'), n = 0;
+            (function t() { var x = el.querySelector(id + ' button'); if (x) x.focus({ preventScroll: true }); else if (n++ < 30) requestAnimationFrame(t); })();
+            window.scrollTo({ top: 0 });
+          };
+          ui.modo = sig; ui.cargando = true; window.Tabs['medalleria'].render(el, ctx); foco();
+          clearTimeout(ui.t); ui.t = setTimeout(function () { ui.cargando = false; window.Tabs['medalleria'].render(el, ctx); foco(); }, 500);
+        });
+      });
+    };
+    if (ui.cargando) { el.innerHTML = h + cargando(modo) + '</section>'; bindModo(); return; }
+    if (modo === 'captura') {
+      el.innerHTML = h + window.MedCaptura.html(data, ui, head) + '</section>';
+      bindModo(); window.MedCaptura.bind(el, data, ui, function () { window.Tabs['medalleria'].render(el, ctx); });
+      return;
+    }
     if (!M.gen.length) {
+      h += '<div class="nwtab-md-sec">' + bloqueRegistro() + '</div>';
       var ev = data.evento, prox = data.estado === 'Próximo';
       h += '<div class="nwtab-emptyb nwtab-emptyb--lg"><b>Aún no hay medallas.' + (nCol ? ' Colombia compite en ' + plural(nCol, 'prueba', 'pruebas') + '.' : '') + '</b>' +
         '<span>' + (prox && ev && ev.inicio ? 'El evento empieza el ' + esc(OLC.fechaCorta(ev.inicio)) + '. ' : '') + 'El medallero y sus gráficos se arman a medida que terminan las pruebas.</span></div></section>';
-      el.innerHTML = h; return;
+      el.innerHTML = h; bindModo(); return;
     }
     var co = M.co, coT = co ? co.total : 0, coO = co ? co.oro : 0, nPais = M.gen.length;
     var lideres = M.deps.filter(function (d) { return d.m[0].pais === 'CO'; }).length;
@@ -340,14 +433,20 @@
     else if (co.pos === 1) { var s2 = M.gen[1]; hintPos = s2 ? (co.oro - s2.oro ? 'a ' + plural(co.oro - s2.oro, 'oro', 'oros') + ' de ' + esc(s2.paisNombre) : 'empata en oros con ' + esc(s2.paisNombre)) : 'Único país con medallas'; }
     else { var ar = M.gen[co.pos - 2], dif = ar.oro - co.oro; hintPos = dif ? 'a ' + plural(dif, 'oro', 'oros') + ' de ' + esc(ar.paisNombre) : 'empata en oros con ' + esc(ar.paisNombre); }
 
-    h += '<div class="nwtab-md-top"><div class="nwtab-md-sec">' + head('Indicadores', '', '', 'md-kpi') + '<div class="nwtab-md-kpis">' +
-      kpi('o', 'medal', coT, 'Medallas de Colombia', pct(coT, M.totEv) + ' % de las ' + nf(M.totEv) + ' del evento') +
-      kpi('o', 'star', coO, 'Oros obtenidos', pct(coO, M.oroEv) + ' % de los ' + nf(M.oroEv) + ' oros') +
-      kpi('g', 'podium', co ? ordDe(co.pos) : '—', 'Posición entre ' + plural(nPais, 'país', 'países') + ' con medalla', hintPos) +
-      kpi('b', 'ball', co ? lideres : '—', 'Deportes donde fue 1.ª', 'de ' + plural(M.deps.length, 'deporte', 'deportes') + ' con medalla') + '</div></div>' + secPais(M) + '</div>';
+    var kpis = RL
+      ? kpi('o', 'medal', coT, 'Medallas de Colombia', pct(coT, M.totEv) + ' % de las ' + nf(M.totEv) + ' del evento') +
+        kpi('o', 'star', coO, 'Oros', pct(coO, M.oroEv) + ' % de los ' + nf(M.oroEv) + ' oros') +
+        kpi('g', 'medal', co ? co.plata : 0, 'Platas', pct(co ? co.plata : 0, coT) + ' % de las de Colombia') +
+        kpi('b', 'medal', co ? co.bronce : 0, 'Bronces', pct(co ? co.bronce : 0, coT) + ' % de las de Colombia') +
+        kpi('g', 'podium', co ? ordDe(co.pos) : '—', 'Puesto en el evento', 'Según el medallero oficial')
+      : kpi('o', 'medal', coT, 'Medallas de Colombia', pct(coT, M.totEv) + ' % de las ' + nf(M.totEv) + ' del evento') +
+        kpi('o', 'star', coO, 'Oros obtenidos', pct(coO, M.oroEv) + ' % de los ' + nf(M.oroEv) + ' oros') +
+        kpi('g', 'podium', co ? ordDe(co.pos) : '—', 'Posición entre ' + plural(nPais, 'país', 'países') + ' con medalla', hintPos) +
+        kpi('b', 'ball', co ? lideres : '—', 'Deportes donde fue 1.ª', 'de ' + plural(M.deps.length, 'deporte', 'deportes') + ' con medalla');
+    h += '<div class="nwtab-md-top' + (RL ? ' nwtab-md-top--solo' : '') + '"><div class="nwtab-md-sec">' + bloqueRegistro() + head('Indicadores', '', '', 'md-kpi') + '<div class="nwtab-md-kpis">' + kpis + '</div></div>' + (RL ? '' : secPais(M)) + '</div>';
     h += secCerca(M, nCol);
-    h += secDeportes(M, ui) + secRival(M, ui) + secGenero(M, ui) + secCompleto(M) + '</section>';
-    el.innerHTML = h;
+    h += secDeportes(M, ui) + (RL ? '' : secRival(M, ui)) + secGenero(M, ui) + (RL && !RL.verPaises ? '' : secCompleto(M, data)) + '</section>';
+    el.innerHTML = h; bindModo();
 
     el.querySelectorAll('.nwtab-md-clipw.is-clip').forEach(function (w) {
       var tr = w.querySelectorAll('tbody tr'), v = w.querySelector('.nwtab-md-clip');
@@ -360,6 +459,38 @@
     el.querySelectorAll('[data-md-more]').forEach(function (b) {
       b.addEventListener('click', function () { var k = b.getAttribute('data-md-more'); ui[k] = !ui[k]; again(b.getAttribute('data-k')); });
     });
+    el.querySelectorAll('.nwtab-md-row').forEach(function (tr) {
+      tr.addEventListener('click', function (e) { var b = tr.querySelector('[data-md-exp]'); if (b && !e.target.closest('button, a')) b.click(); });
+    });
+    el.querySelectorAll('[data-md-exp]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var gk = b.getAttribute('data-md-exp');
+        if (gk.indexOf('md-dd-') === 0) { /* el listado se muestra completo mientras haya un deporte abierto */
+          ui.dOpen = ui.dOpen || {}; ui.dOpen[gk] = !ui.dOpen[gk];
+          if (ui.dOpen[gk]) ui.dep = true;
+          again(gk); return;
+        }
+        var abre = b.getAttribute('aria-expanded') !== 'true';
+        b.setAttribute('aria-expanded', abre);
+        el.querySelectorAll('[data-g="' + b.getAttribute('data-md-exp') + '"]').forEach(function (t) { t.hidden = !abre; });
+      });
+    });
+    var qs = el.querySelector('#md-dep-q');
+    if (qs) {
+      var apply = function (v) { /* con búsqueda se ve todo el listado: se quita el recorte */
+        var w = qs.closest('.nwtab-md-sec').querySelector('.nwtab-md-clipw'), n = N.norm(v);
+        if (w && n) { w.classList.remove('is-clip'); w.querySelector('.nwtab-md-clip').style.maxHeight = 'none'; }
+        qs.closest('.nwtab-md-sec').querySelectorAll('tbody tr').forEach(function (t) { var k = t.getAttribute('data-q') || t.getAttribute('data-qd'); t.hidden = t.hasAttribute('data-g') ? true : !!(n && k.indexOf(n) < 0); });
+        ui.depQ = v;
+      };
+      qs.placeholder = 'Buscar deporte'; qs.value = ui.depQ || '';
+      var tq;
+      qs.addEventListener('nwtChange', function (e) {
+        var v = e.detail == null ? '' : String(e.detail); clearTimeout(tq);
+        tq = setTimeout(function () { if (v) apply(v); else { ui.depQ = ''; again('md-dep-q'); } }, 200);
+      });
+      if (ui.depQ) apply(ui.depQ);
+    }
     el.querySelectorAll('[data-md-rival]').forEach(function (b) {
       b.addEventListener('click', function () { ui.rival = b.getAttribute('data-md-rival'); again(b.getAttribute('data-k')); });
     });

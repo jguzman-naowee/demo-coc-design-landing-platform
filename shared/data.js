@@ -370,6 +370,12 @@
     return { src: 'https://flagcdn.com/w' + a + '/' + c + '.png', srcset: 'https://flagcdn.com/w' + (a * 2) + '/' + c + '.png 2x' };
   }
 
+  /* Captura manual (prototipo): medallas guardadas en memoria por evento; se suman al medallero. Se pierden al recargar. */
+  var CAPTURA = {};
+  function capturadas(code) { return (CAPTURA[code] = CAPTURA[code] || []); }
+  function capturar(code, items) { items.forEach(function (x) { capturadas(code).push(x); }); }
+  function quitarCaptura(code, id) { CAPTURA[code] = capturadas(code).filter(function (x) { return x.id !== id; }); }
+
   var cache = {};
   function datosDe(code) {
     if (cache[code]) return cache[code];
@@ -434,9 +440,22 @@
           r[k]++; r.total++;
         });
       });
+      capturadas(code).forEach(function (x) {
+        if (deporte && x.deporte !== deporte) return;
+        var r = m[x.pais] || (m[x.pais] = { pais: x.pais, paisNombre: x.paisNombre || x.pais, oro: 0, plata: 0, bronce: 0, total: 0 });
+        r[x.metal]++; r.total++;
+      });
       return Object.keys(m).map(function (k) { return m[k]; }).filter(function (r) { return r.total > 0; })
         .sort(function (a, b) { return b.oro - a.oro || b.plata - a.plata || b.bronce - a.bronce || a.paisNombre.localeCompare(b.paisNombre); })
         .map(function (r, i) { r.pos = i + 1; return r; });
+    }
+
+    /* PROD-63: medallas de un país por deporte; reusa medallero(deporte), así la suma cuadra con su fila. */
+    function medallasDePais(pais) {
+      return deportes.map(function (d) {
+        var r = medallero(d.codigo).filter(function (x) { return x.pais === pais; })[0];
+        return r && { deporte: d.codigo, deporteNombre: d.nombre, oro: r.oro, plata: r.plata, bronce: r.bronce, total: r.total };
+      }).filter(Boolean).sort(function (a, b) { return b.oro - a.oro || b.plata - a.plata || b.bronce - a.bronce || a.deporteNombre.localeCompare(b.deporteNombre); });
     }
 
     var nombres = {}, enPruebas = pruebas.filter(function (p) { return p.participa; });
@@ -454,13 +473,13 @@
     /* porDeporte y atletas: expuestos, sin uso en la UI hasta que Jorge decida Medallería. */
     var colEvento = { medallas: med, posicion: med.total && fila ? fila.pos : null, de: med.total && fila ? deDe : null, deportistas: nDep, atletas: atletas, participa: enPruebas.length, porDeporte: porDep };
 
-    return (cache[code] = { evento: ev, estado: est, colombia: colEvento, deportes: deportes, pruebas: pruebas, dias: dias, medallero: medallero, paises: paisesEv.map(function (x) { return { pais: x[0], paisNombre: x[1] }; }) });
+    return (cache[code] = { evento: ev, estado: est, colombia: colEvento, deportes: deportes, pruebas: pruebas, dias: dias, medallero: medallero, medallasDePais: medallasDePais, paises: paisesEv.map(function (x) { return { pais: x[0], paisNombre: x[1] }; }) });
   }
 
   window.OLC = {
     HOY: HOY, SEXO: SEXO, DIAS: DIAS_ES,
     eventos: function () { return EVENTOS.map(function (e) { var o = Object.assign({}, e); o.estado = estado(e); return o; }); },
-    estado: estado, datosDe: datosDe,
+    estado: estado, datosDe: datosDe, capturadas: capturadas, capturar: capturar, quitarCaptura: quitarCaptura,
     colombiaDia: colombiaDia, resultadoFilas: resultadoFilas, bandera: bandera, medalla: medalla, paisNombre: paisNombre, colombiaEtiqueta: colombiaEtiqueta, colombianoEtiqueta: colombianoEtiqueta,
     fechaLarga: fechaLarga, fechaCorta: fechaCorta, diaCorto: diaCorto
   };

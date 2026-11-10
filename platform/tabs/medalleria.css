@@ -283,3 +283,77 @@
 .nwtab-md-vsg { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 @container nws (min-width: 900px) { .nwtab-md-vsg:has(> :nth-child(2)) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .nwtab-md-vsg > .nwtab-md-vs { align-self: start; }
+
+/* PROD-63: desglose por deporte de cada delegación (filas hermanas bajo las mismas columnas) */
+.nwtab-md-cx { width: 56px; padding-left: 0; padding-right: 8px; text-align: right; }
+.nwtab-md-exp { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -8px 0; border: 0; background: none; color: var(--nwtab-mut); cursor: pointer; border-radius: 8px; }
+.nwtab-md-exp svg { transition: transform .15s; }
+.nwtab-md-exp:hover, .nwtab-md-row:hover .nwtab-md-exp { color: var(--nwtab-pri); }
+.nwtab-md-exp:focus-visible { outline: 3px solid var(--nwtab-pri); outline-offset: -3px; }
+.nwtab-md-exp[aria-expanded="true"] svg { transform: rotate(180deg); }
+.nwtab-md-tb--all tbody tr.nwtab-md-row { cursor: pointer; }
+.nwtab-md-tb.nwtab-md-tb--all tbody tr.nwtab-md-row:hover td { background: color-mix(in srgb, var(--nwtab-pri) 7%, #fff); }
+.nwtab-md-tb.nwtab-md-tb--all tbody tr.nwtab-md-row.nwtab-co:hover td { background: color-mix(in srgb, var(--nwtab-pri) 12%, #fff); }
+.nwtab-md-det[hidden] { display: none; }
+.nwtab-md-tb tbody tr.nwtab-md-det td { background: color-mix(in srgb, var(--nwtab-pri) 3%, #fff); font-size: 14px; font-weight: 600; }
+.nwtab-md-tb tbody tr.nwtab-md-det--z td { background: color-mix(in srgb, var(--nwtab-pri) 7%, #fff); }
+.nwtab-md-tb tbody tr.nwtab-md-det--end td:first-child { border-bottom-left-radius: 12px; }
+.nwtab-md-tb tbody tr.nwtab-md-det--end td:last-child { border-bottom-right-radius: 12px; }
+.nwtab-md-tb tbody tr.nwtab-md-det--v td { padding-bottom: 14px; font-weight: 400; color: var(--nwtab-mut); }
+.nwtab-md-tb tbody tr.nwtab-md-det--v b { color: inherit; font-weight: 800; }
+.nwtab-md-det__sp { visibility: hidden; }
+
+/* Medallas reales (nao-award) donde antes había puntos de color: leyenda, comparación con el rival y Total */
+.nwtab-md-lgm, .nwtab-md-vs__ic { display: inline-flex; align-items: center; line-height: 0; }
+.nwtab-md-vs__m.is-0 .nwtab-md-vs__ic { opacity: .35; filter: grayscale(1); } /* sin medallas: la misma medalla, atenuada */
+.nwtab-tri { display: inline-flex; align-items: center; margin-right: 6px; }
+.nwtab-tri > span { position: relative; display: block; flex: 0 0 18px; width: 18px; height: 18px; line-height: 0; }
+.nwtab-tri > span + span { margin-left: -9px; }
+.nwtab-tri > span:nth-child(1) { z-index: 3; } .nwtab-tri > span:nth-child(2) { z-index: 2; } .nwtab-tri > span:nth-child(3) { z-index: 1; }
+.nwtab-tri nao-award { display: block; width: 18px; height: 18px; }
+
+/* Registrar medallas (operación): solo disposición; los controles son componentes del SDK */
+.nwtab-cap-modo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.nwtab-cap-reg { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.nwtab-cap-mut { font-size: 13px; color: var(--nwtab-mut); }
+.nwtab-cap-filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
+.nwtab-cap-f { flex: 0 1 240px; min-width: 180px; }
+.nwtab-cap-f--q { flex: 1 1 280px; }
+.nwtab-cap-grp th { padding: 8px 12px; background: var(--naotech-app-color-100); font-size: 12px; font-weight: 800; letter-spacing: .02em; color: var(--naotech-app-font-color); text-align: left; text-transform: none; }
+.nwtab-cap-grp th span { float: right; font-weight: 600; color: var(--nwtab-mut); }
+.nwtab-cap-pu { color: var(--nwtab-mut); white-space: nowrap; }
+.nwtab-cap-tagm { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+.nwtab-cap-tagm span { display: inline-flex; line-height: 0; }
+.nwtab-cap-pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.nwtab-cap-pag { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13px; }
+.nwtab-cap-ok { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.nwtab-cap-ok nwt-alert { flex: 1 1 320px; }
+.nwtab-cap-acc { display: flex; flex-wrap: nowrap; justify-content: flex-end; gap: 4px; white-space: nowrap; }
+.nwtab-cap-live { min-height: 18px; font-size: 13px; color: var(--nwtab-mut); }
+
+/* Esqueleto de carga al cambiar Consulta ↔ Captura */
+.nwtab-sk-w { display: flex; flex-direction: column; gap: 20px; }
+.nwtab-sk { display: block; max-width: 100%; border-radius: 8px; background: linear-gradient(90deg, var(--naotech-app-color-100) 25%, color-mix(in srgb, var(--naotech-app-color-100) 55%, #fff) 50%, var(--naotech-app-color-100) 75%); background-size: 200% 100%; animation: nwtab-sk 1.2s ease-in-out infinite; }
+.nwtab-sk-f { display: flex; flex-wrap: wrap; gap: 16px; }
+.nwtab-sk-t { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--naotech-app-border-1-200); }
+.nwtab-sk-r { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 8px; border-bottom: 1px solid var(--naotech-app-border-1-200); }
+@keyframes nwtab-sk { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .nwtab-sk { animation: none; } }
+
+/* Registrar medallas: pantalla propia, sin cabecera del evento ni pestañas */
+.nws-event-detail.is-registro > :not(.nws-event-detail-tabs):not(#nws-h1) { display: none; }
+.nws-event-detail.is-registro .nws-tabnav, .nws-event-detail.is-registro .nws-tabnav__sent { display: none; }
+
+/* roles.html: sin el medallero por país a la derecha, los indicadores van en una fila */
+.nwtab-md-top--solo { grid-template-columns: minmax(0, 1fr); }
+.nwtab-md-top--solo .nwtab-md-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+@container nws (max-width: 960px) { .nwtab-md-top--solo .nwtab-md-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container nws (max-width: 440px) { .nwtab-md-top--solo .nwtab-md-kpis { grid-template-columns: minmax(0, 1fr); } }
+
+/* Colombia en cada deporte (roles): buscador y detalle por deportista */
+.nwtab-md-q { padding: 16px 16px 4px; }
+.nwtab-md-q nwt-searchbox { display: block; width: 100%; }
+.nwtab-md-tb--dep tbody tr.nwtab-md-row { cursor: pointer; }
+.nwtab-md-tb.nwtab-md-tb--dep tbody tr.nwtab-md-row:hover td { background: color-mix(in srgb, var(--nwtab-pri) 7%, #fff); }
+.nwtab-md-dm { display: inline-flex; align-items: center; gap: 8px; }
+.nwtab-md-sub { display: block; font-weight: 400; }
