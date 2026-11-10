@@ -131,11 +131,13 @@
   }
 
   /* 1. Medallero por país: barras apiladas oro/plata/bronce, con texto equivalente para lectores de pantalla. */
-  function secPais(M) {
-    var max = M.gen.reduce(function (a, r) { return Math.max(a, r.total); }, 1);
-    var h = '<div class="nwtab-md-sec">' + head('Medallero por país', 'Distribución apilada · ' + plural(M.gen.length, 'país', 'países'), leyenda([['Oro', 'var(--md-oro)', 'oro'], ['Plata', 'var(--md-plata)', 'plata'], ['Bronce', 'var(--md-bronce)', 'bronce']]), 'md-pais') + '<section class="nwtab-md-card" aria-labelledby="md-pais">' +
+  function secPais(M, resumen) {
+    var max = M.gen.reduce(function (a, r) { return Math.max(a, r.total); }, 1), gen = M.gen;
+    /* Resumen: los 5 primeros y Colombia; el detalle completo va en la tabla de abajo. */
+    if (resumen) gen = M.gen.filter(function (r, i) { return i < 5 || r.pais === 'CO'; });
+    var h = '<div class="nwtab-md-sec">' + head('Medallero por país', (resumen ? 'Resumen: los 5 primeros y Colombia · el detalle completo, abajo' : 'Distribución apilada · ' + plural(M.gen.length, 'país', 'países')), leyenda([['Oro', 'var(--md-oro)', 'oro'], ['Plata', 'var(--md-plata)', 'plata'], ['Bronce', 'var(--md-bronce)', 'bronce']]), 'md-pais') + '<section class="nwtab-md-card" aria-labelledby="md-pais">' +
       '<ul class="nwtab-md-stack">';
-    M.gen.forEach(function (r) {
+    gen.forEach(function (r) {
       var own = r.pais === 'CO';
       h += '<li class="nwtab-md-stack__i' + (own ? ' is-own' : '') + '"><span class="nwtab-md-stack__l">' + N.cc(r.pais, r.paisNombre) + '<span class="nwtab-md-stack__n">' + esc(r.paisNombre) + '</span></span>' +
         '<span class="nwtab-md-stack__tr" aria-hidden="true">' +
@@ -441,7 +443,7 @@
         kpi('o', 'star', coO, 'Oros obtenidos', pct(coO, M.oroEv) + ' % de los ' + nf(M.oroEv) + ' oros') +
         kpi('g', 'podium', co ? ordDe(co.pos) : '—', 'Posición entre ' + plural(nPais, 'país', 'países') + ' con medalla', hintPos) +
         kpi('b', 'ball', co ? lideres : '—', 'Deportes donde fue 1.ª', 'de ' + plural(M.deps.length, 'deporte', 'deportes') + ' con medalla');
-    h += '<div class="nwtab-md-top' + (RL ? ' nwtab-md-top--solo' : '') + '"><div class="nwtab-md-sec">' + bloqueRegistro() + head('Indicadores', '', '', 'md-kpi') + '<div class="nwtab-md-kpis">' + kpis + '</div></div>' + (RL ? '' : secPais(M)) + '</div>';
+    h += (bloqueRegistro() ? '<div class="nwtab-md-sec">' + bloqueRegistro() + '</div>' : '') + '<div class="nwtab-md-top' + (RL && !RL.verPaises ? ' nwtab-md-top--solo' : '') + '"><div class="nwtab-md-sec">' + head('Indicadores', '', '', 'md-kpi') + '<div class="nwtab-md-kpis">' + kpis + '</div></div>' + (RL && !RL.verPaises ? '' : secPais(M, !!RL)) + '</div>';
     h += secCerca(M, nCol);
     h += secDeportes(M, ui) + (RL ? '' : secRival(M, ui)) + secGenero(M, ui) + (RL && !RL.verPaises ? '' : secCompleto(M, data)) + '</section>';
     el.innerHTML = h; bindModo();
