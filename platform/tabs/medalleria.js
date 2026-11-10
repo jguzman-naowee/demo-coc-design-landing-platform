@@ -199,7 +199,7 @@
     var h = '<div class="nwtab-md-sec">' + head('Colombia en cada deporte', RL ? 'Medallas de Colombia en cada deporte' : 'Medallas de Colombia, su peso en los oros del deporte y su puesto en el medallero de ese deporte', '', 'md-dep') + '<section class="nwtab-md-card" aria-labelledby="md-dep">';
     if (!rows.length) return h + '<div class="nwtab-md-na"><b>Colombia aún no tiene medallas</b><span>Cuando gane la primera, verá aquí en qué deportes.</span></div></section></div>';
     var shown = rows;
-    if (RL) h += '<div class="nwtab-md-q"><nwt-searchbox id="md-dep-q" nwt-size="medium"></nwt-searchbox></div>';
+    if (RL) h += '<div class="nwtab-md-q"><nwt-searchbox id="md-dep-q" nwt-size="medium"></nwt-searchbox><p class="nwtab-sr" id="md-dep-st" role="status" aria-live="polite"></p></div>';
     h += '<div class="nwtab-tw"><table class="nwtab-tb nwtab-md-tb nwtab-md-tb--dep"><caption class="nwtab-sr">Medallas de Colombia por deporte</caption><thead><tr><th scope="col" class="nwtab-md-c1">#</th><th scope="col">Deporte</th>' +
       '<th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('oro') + '<span class=\"nwtab-md-th\">Oro</span></span></th><th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('plata') + '<span class=\"nwtab-md-th\">Plata</span></span></th><th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('bronce') + '<span class=\"nwtab-md-th\">Bronce</span></span></th>' +
       '<th scope="col" class="nwtab-r">' + totalH() + '</th>' + (RL ? '<th scope="col" class="nwtab-md-cx"><span class="nwtab-sr">Detalle por deportista</span></th>' : '<th scope="col" class="nwtab-md-hide-s">Oros del deporte que ganó Colombia</th><th scope="col">Puesto en el deporte</th>') + '</tr></thead><tbody>';
@@ -209,11 +209,11 @@
       h += '<tr' + (RL ? ' class="nwtab-md-row" data-q="' + esc(N.norm(d.nombre)) + '"' : '') + '><td class="nwtab-md-c1">' + rk(i + 1) + '</td><td>' + (RL ? '<span class="nwtab-md-ico">' + ico(d.code) + '</span>' : '') + '<span class="nwtab-dn">' + esc(d.nombre) + '</span></td>' +
         '<td class="nwtab-r"><span class="nwtab-n' + (c.oro ? '' : ' is-0') + '">' + c.oro + '</span></td><td class="nwtab-r"><span class="nwtab-n' + (c.plata ? '' : ' is-0') + '">' + c.plata + '</span></td><td class="nwtab-r"><span class="nwtab-n' + (c.bronce ? '' : ' is-0') + '">' + c.bronce + '</span></td>' +
         '<td class="nwtab-r"><b class="nwtab-n nwtab-n--t">' + c.total + '</b></td>' +
-        (RL ? '<td class="nwtab-md-cx"><button type="button" class="nwtab-md-exp" data-md-exp="' + gid + '" data-k="' + gid + '" aria-expanded="' + !!(ui.dOpen && ui.dOpen[gid]) + '" aria-label="Quién ganó cada medalla en ' + esc(d.nombre) + '"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5 7.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>' : '<td class="nwtab-md-hide-s">' + (d.oros ? '<span class="nwtab-md-w"><span class="nwtab-md-w__tr" aria-hidden="true"><span style="width:' + w + '%"></span></span><span class="nwtab-md-w__t">' + c.oro + ' de ' + d.oros + '</span></span>' : '<span class="nwtab-md-mut">Sin oros en el deporte</span>') + '</td>' +
+        (RL ? '<td class="nwtab-md-cx"><button type="button" class="nwtab-md-exp" data-md-exp="' + gid + '" data-k="' + gid + '"' + (det.length ? ' aria-controls="' + det.map(function (x, j) { return gid + '-' + j; }).join(' ') + '"' : '') + ' aria-expanded="' + !!(ui.dOpen && ui.dOpen[gid]) + '" aria-label="Quién ganó cada medalla en ' + esc(d.nombre) + '"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5 7.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>' : '<td class="nwtab-md-hide-s">' + (d.oros ? '<span class="nwtab-md-w"><span class="nwtab-md-w__tr" aria-hidden="true"><span style="width:' + w + '%"></span></span><span class="nwtab-md-w__t">' + c.oro + ' de ' + d.oros + '</span></span>' : '<span class="nwtab-md-mut">Sin oros en el deporte</span>') + '</td>' +
         '<td><span class="nwtab-md-badge' + (lead ? ' is-lead' : '') + '">' + ordDe(c.pos) + ' de ' + d.m.length + '</span>' + (lead ? '' : '<small class="nwtab-md-mut nwtab-md-hide-s"> lidera ' + esc(l.paisNombre) + '</small>') + '</td>') + '</tr>';
       det.forEach(function (x, j) {
-        h += '<tr class="nwtab-md-det' + (j % 2 ? ' nwtab-md-det--z' : '') + (j === det.length - 1 ? ' nwtab-md-det--end' : '') + '" data-g="' + gid + '" data-qd="' + esc(N.norm(d.nombre)) + '"' + (ui.dOpen && ui.dOpen[gid] ? '' : ' hidden') + '><td></td><td><span class="nwtab-dn">' + esc(x.n) + '</span><small class="nwtab-md-mut nwtab-md-sub">' + esc(x.p) + '</small></td>' +
-          '<td colspan="3"><span class="nwtab-md-dm">' + dotMed(x.m) + '<span>' + { oro: 'Oro', plata: 'Plata', bronce: 'Bronce' }[x.m] + '</span></span></td><td class="nwtab-r">' + esc(SEXO[x.s] || '—') + '</td><td></td></tr>';
+        h += '<tr class="nwtab-md-det' + (j % 2 ? ' nwtab-md-det--z' : '') + (j === det.length - 1 ? ' nwtab-md-det--end' : '') + '" id="' + gid + '-' + j + '" data-g="' + gid + '" data-qd="' + esc(N.norm(d.nombre)) + '"' + (ui.dOpen && ui.dOpen[gid] ? '' : ' hidden') + '><td></td><td colspan="6"><div class="nwtab-md-dg"><span class="nwtab-dn">' + esc(x.n) + '</span><span class="nwtab-md-mut">' + esc(x.p) + '</span>' +
+          '<span class="nwtab-md-dm">' + dotMed(x.m) + '<span>' + { oro: 'Oro', plata: 'Plata', bronce: 'Bronce' }[x.m] + '</span></span><span class="nwtab-md-mut">' + esc(SEXO[x.s] || '—') + '</span></div></td></tr>';
       });
     });
     h += '</tbody></table></div>';
@@ -482,6 +482,8 @@
         if (w && n) { w.classList.remove('is-clip'); w.querySelector('.nwtab-md-clip').style.maxHeight = 'none'; }
         qs.closest('.nwtab-md-sec').querySelectorAll('tbody tr').forEach(function (t) { var k = t.getAttribute('data-q') || t.getAttribute('data-qd'); t.hidden = t.hasAttribute('data-g') ? true : !!(n && k.indexOf(n) < 0); });
         ui.depQ = v;
+        var st = el.querySelector('#md-dep-st'), vis = qs.closest('.nwtab-md-sec').querySelectorAll('tr.nwtab-md-row:not([hidden])').length;
+        if (st) st.textContent = !n ? '' : vis ? plural(vis, 'deporte encontrado', 'deportes encontrados') : 'Sin deportes que coincidan';
       };
       qs.placeholder = 'Buscar deporte'; qs.value = ui.depQ || '';
       var tq;
