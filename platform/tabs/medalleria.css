@@ -151,6 +151,8 @@
   .nwtab-md-tb--dep .nwtab-md-hide-s { display: none; }
 }
 @container nws (max-width: 640px) {
+  .nwtab-md-ct { table-layout: fixed; }
+  .nwtab-md-ct th[scope="row"] { width: 42%; overflow-wrap: anywhere; }
   .nwtab-md-ct th, .nwtab-md-ct td { padding: 8px 4px; }
   .nwtab-md-ct__e { width: 56px; }
   .nwtab-md-ef__tr { display: none; }
@@ -361,3 +363,21 @@
 .nwtab-md-sub { display: block; font-weight: 400; }
 
 .nwtab-md-ico { display: inline-flex; vertical-align: middle; margin-right: 8px; color: var(--naotech-color-text-secondary, #5b6472); }
+
+/* Detalle por deportista: rejilla propia, independiente de las columnas de medallas de la tabla */
+.nwtab-md-dg { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 140px 110px; gap: 4px 16px; align-items: center; padding: 6px 0; }
+.nwtab-md-dg .nwtab-md-mut { font-weight: 400; font-size: 14px; }
+.nwtab-md-tb tbody tr.nwtab-md-det td[colspan] { vertical-align: middle; }
+@container nws (max-width: 640px) {
+  .nwtab-md-dg { grid-template-columns: minmax(0, 1fr) auto; padding-right: 8px; }
+  .nwtab-md-dg > :nth-child(3) { order: 2; justify-self: end; } .nwtab-md-dg > :nth-child(2) { order: 3; } .nwtab-md-dg > :nth-child(4) { order: 4; justify-self: end; }
+}
+@container nws (max-width: 640px) {
+  .nwtab-md-det .nwtab-dg { flex-wrap: nowrap; gap: 0; }
+  .nwtab-md-det .nwtab-dg > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+  .nwtab-md-det__fl { display: none; }
+  .nwtab-md-det__sp { position: static; margin-right: 8px; }
+  .nwtab-md-det__sp .nwtab-md-ico { position: static; transform: none; }
+  .nwtab-md-tb th.nwtab-md-cx, .nwtab-md-tb td.nwtab-md-cx { width: 44px; padding-left: 0; padding-right: 0; }
+  .nwtab-md-det__sp .nwtab-md-ico { margin-right: 0; }
+}
