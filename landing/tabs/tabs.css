@@ -458,8 +458,6 @@ dialog.lp-dp-m::backdrop { background: rgb(10 10 10 / .6); }
 .lp-wm { width: 104px; }
 /* Total: oro, plata y bronce superpuestos en triángulo (DC-163). */
 .lp-mt-tb .lp-md--tri { position: relative; display: inline-block; width: 32px; height: 30px; vertical-align: middle; }
-.lp-md--tri > span:not(.lp-md-t) { position: absolute; display: block; line-height: 0; }
-.lp-md--tri__g { top: 0; left: 7px; z-index: 3; } .lp-md--tri__s { bottom: 0; left: 0; z-index: 2; } .lp-md--tri__b { bottom: 0; right: 0; z-index: 1; }
 /* .lp-md también es el punto de medalla del calendario (8px): aquí se anula para que el rótulo no desborde. */
 .lp-mt-tb .lp-md { display: inline-flex; align-items: center; gap: 6px; width: auto; height: auto; margin: 0; border-radius: 0; background: none; }.lp-md .lp-tdot { width: 10px; height: 10px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .1); }
 .lp-tdot-g { background: var(--lp-gold) !important; }
@@ -635,3 +633,33 @@ dialog.lp-dp-m::backdrop { background: rgb(10 10 10 / .6); }
   .lp-pod-l { grid-template-columns: 1fr; gap: 48px; justify-items: center; }
   .lp-pod-1 { order: 1; } .lp-pod-2 { order: 2; } .lp-pod-3 { order: 3; }
 }
+
+/* PROD-63: desglose por deporte de cada país (filas hermanas, bajo las mismas columnas) */
+.lp-mt-tb .lp-mx { width: 56px; padding-left: 0; padding-right: 8px; text-align: right; }
+.lp-mexp { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; background: none; color: var(--lp-muted); cursor: pointer; border-radius: 8px; }
+.lp-mexp svg { transition: transform .15s; }
+.lp-mexp:hover, .lp-mrow:hover .lp-mexp { color: var(--lp-primary); }
+.lp-mexp:focus-visible { outline: 3px solid var(--lp-primary); outline-offset: -3px; }
+.lp-mexp[aria-expanded="true"] svg { transform: rotate(180deg); }
+.lp-mt-tb tbody tr.lp-mrow--x { cursor: pointer; }
+.lp-mt-tb tbody tr.lp-mrow:hover td { background: color-mix(in srgb, var(--lp-primary) 7%, #fff); }
+.lp-mt-tb tbody tr.lp-mco.lp-mrow:hover td { background: color-mix(in srgb, var(--lp-primary) 14%, #fff); }
+.lp-mt-tb tbody tr.lp-mdet[hidden] { display: none; }
+.lp-mt-tb tbody tr.lp-mdet td { height: 48px; background: color-mix(in srgb, var(--lp-primary) 3%, #fff); font-size: 14px; font-weight: 600; color: var(--lp-ink); }
+.lp-mt-tb tbody tr.lp-mdet--z td { background: color-mix(in srgb, var(--lp-primary) 7%, #fff); }
+.lp-mt-tb tbody tr.lp-mdet--end td:first-child { border-bottom-left-radius: 12px; }
+.lp-mt-tb tbody tr.lp-mdet--end td:last-child { border-bottom-right-radius: 12px; }
+.lp-mt-tb tbody tr.lp-mdet--v td { height: auto; padding-bottom: 16px; font-weight: 400; color: var(--lp-muted); }
+.lp-mt-tb tbody tr.lp-mdet--v b { color: var(--lp-ink); }
+.lp-mdet-sp { visibility: hidden; }
+.lp-mt-tb .lp-mdet .is-0 { color: var(--lp-subtle); }
+/* Total (DC-163): las tres medallas en línea, solapadas la mitad de su ancho (18px → -9px) */
+.lp-mt-tb .lp-md.lp-md--tri { display: inline-flex; align-items: center; gap: 6px; width: auto; height: auto; padding: 0; }
+.lp-mt-tb .lp-md--tri > .lp-tri { position: static; display: inline-flex; align-items: center; }
+.lp-tri > span { position: relative; display: block; line-height: 0; }
+.lp-tri > span + span { margin-left: -9px; }
+.lp-tri > span:nth-child(1) { z-index: 3; } .lp-tri > span:nth-child(2) { z-index: 2; } .lp-tri > span:nth-child(3) { z-index: 1; }
+/* Cada medalla conserva sus 18px (si la celda aprieta, el flex las encogía y se tapaban casi por completo) */
+.lp-tri > span { flex: 0 0 18px; width: 18px; height: 18px; }
+.lp-tri > span > nao-award { display: block; width: 18px; height: 18px; }
+.lp-mt-tb .lp-md--tri { white-space: nowrap; }
