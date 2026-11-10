@@ -41,6 +41,13 @@
   </div>
 </div>
 <script type="module" src="../shared/awards.js"></script>
+<script>
+/* Rol de la demo (lo manda demo.html): Comité consulta, Admin registra medallas. Sin parámetro: Comité. */
+(function () {
+  var r = new URLSearchParams(location.search).get('rol'), g = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  window.MED_ROLES = { rol: r === 'admin' ? 'admin' : 'comite', verPaises: g('nws:paises') !== 'no' };
+})();
+</script>
 <script src="../shared/real/model.js"></script>
 <script src="../shared/data.js"></script>
 <script src="../shared/sport-icons.js"></script>
