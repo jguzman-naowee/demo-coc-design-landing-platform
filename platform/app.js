@@ -460,9 +460,12 @@
     return '<span class="nws-event-detail__ctd" role="group" aria-label="' + l + '"><span class="nws-event-detail__ctd-w" aria-hidden="true">' + w + '</span><span class="nws-event-detail__ctd-n" aria-hidden="true">' + c + '</span></span>';
   }
   /* DC-107: el hero va entre el Volver y la barra de pestañas, una sola vez para todas las pestañas. */
+  /* Imágenes oficiales por evento (compartidas con la landing); sin imagen oficial queda el degradado de marca. */
+  var HERO_IMG = { 'suramericanos-sante-fe-2026': 'hero-santafe', 'centroamericanos-sd-2026': 'hero-centroamericanos', 'intercolegiados-2026': 'hero-intercolegiados', 'copa-coc-cali-2026': 'hero-copa-cali' };
+  var HERO_CREDITO = { 'copa-coc-cali-2026': 'Foto: Gersonparra11 · CC BY-SA 3.0 · Wikimedia Commons' };
   function heroHtml(data) {
-    var e = data.evento, est = data.estado;
-    return '<header class="nws-event-detail__head nws-ph' + varianteFoto(e.code || data.code || e.nombre) + '" aria-label="Encabezado del evento"><span class="nws-ph__tag">Foto del evento</span><div class="nws-event-detail__veil"></div>' +
+    var e = data.evento, est = data.estado, img = HERO_IMG[e.code];
+    return '<header class="nws-event-detail__head nws-ph' + varianteFoto(e.code || data.code || e.nombre) + '" aria-label="Encabezado del evento">' + (img ? '<img class="nws-event-detail__img" src="../landing/assets/hero/' + img + '.webp" alt="" decoding="async">' : '') + '<div class="nws-event-detail__veil"></div>' + (HERO_CREDITO[e.code] ? '<span class="nws-event-detail__credit">' + esc(HERO_CREDITO[e.code]) + '</span>' : '') +
       '<div class="nws-event-detail__hero-in">' +
       '<div class="nws-event-detail__titlebox"><div class="nws-event-detail__badges">' + (e.ciclo ? '<span class="nws-event-detail__cycle">Ciclo Olímpico</span>' : '') +
       '</div>' +
