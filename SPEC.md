@@ -160,8 +160,16 @@ Cuatro ítems (`Dashboards`, `Reportes`, `Gestión deportiva`, `Gestión de usua
 - `shared/sport-icons.js` (íconos por código real), `shared/boletines.js` (CSV/PDF al vuelo), `platform/tabs/carga-masiva.js` (demo, no persiste).
 - El dashboard filtra por periodo Desde – Hasta (un año por defecto) en lugar del selector de años.
 
+## Contrato de datos propuesto para la Medallería (sin confirmar con backend)
+Es lo que la demo ya consume (`OLC.datosDe`, `OLC.capturadas`); si la API real difiere, se adapta el modelo, no la UI.
+- **Medallero por país** (evento): `[{pais, paisNombre, oro, plata, bronce, total, pos}]`, ordenado oro, plata, bronce.
+- **Medallas por país y deporte** (evento): `[{pais, deporte, deporteNombre, oro, plata, bronce, total}]`; la suma por deporte debe igualar el `total` del país.
+- **Medallas de Colombia por deportista** (evento): `[{id, deporte, prueba, deportista, sexo, metal}]` con `sexo` F|M|X|U y `metal` oro|plata|bronce.
+- **Registro de medallas** (solo Admin; el Comité Olímpico solo lee): crear y quitar ítems `{id, evento, pais, deporte, prueba, sexo, deportista, metal}`; lo registrado debe sumarse al medallero y al desglose.
+- **Podio** (conteo en Resultados): una prueba finalizada con medallistas cuenta una vez por prueba y género; nunca por fila de resultado.
+
 ## Decisiones abiertas (pendientes de Jorge)
-1. **Medallería real solo-Colombia.** La web real muestra solo las medallas de Colombia por deporte (`OLC_REAL.medallasColombiaPorDeporte`, totales oficiales 69 oro / 61 plata / 62 bronce), no un ranking de países. Hoy los prototipos pintan el medallero por país (parcial: 8 de 14 jornadas) con Colombia fijada. `datosDe().colombia.porDeporte` ya existe, sin uso en la UI. Sin decisión no se cambia la semántica.
+1. **Medallería real solo-Colombia.** La web real muestra solo las medallas de Colombia por deporte (`OLC_REAL.medallasColombiaPorDeporte`, totales oficiales 69 oro / 61 plata / 62 bronce), no un ranking de países. Hoy los prototipos pintan el medallero por país (parcial: 8 de 14 jornadas) con Colombia fijada. `datosDe().colombia.porDeporte` ya existe, sin uso en la UI. Resuelta (nov 2026, PROD-63): la Medallería muestra Colombia por deporte, deportista y género, y conserva el medallero de países como resumen y tabla completa; el % del total y el puesto se mantienen para el Comité.
 2. **Titular de portada «deporte colombiano».** El landing dice «El punto de encuentro del deporte colombiano» (`landing/app.js`), mientras los eventos son internacionales; falta confirmar el copy.
 3. **Vocabulario «Género» vs «Sexo».** El parámetro y el campo son `sexo` (`F`/`M`/`X`, «Femenino/Masculino/Mixto»); falta decidir si la UI rotula el filtro «Sexo» o «Género».
 

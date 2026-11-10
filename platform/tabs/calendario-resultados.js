@@ -247,6 +247,9 @@
     var fin = ps.filter(function (p) { return N.estadoPrueba(p) === 'Finalizado'; }).length;
     var s = '<span class="nwtab-tag">' + ps.length + (ps.length === 1 ? ' prueba' : ' pruebas') + '</span>';
     if (fin) s += '<span class="nwtab-tag nwtab-tag--done">' + fin + (fin === 1 ? ' finalizada' : ' finalizadas') + '</span>';
+    /* Podio = prueba finalizada con medallistas, una vez por prueba y género; no cuenta filas de resultado. */
+    var pod = ps.filter(function (p) { return N.estadoPrueba(p) === 'Finalizado' && p.filas.some(function (f) { return f.puesto >= 1 && f.puesto <= 3 && f.premia !== false; }); }).length;
+    if (pod) s += '<span class="nwtab-tag nwtab-tag--done">' + pod + (pod === 1 ? ' podio' : ' podios') + '</span>';
     return s;
   }
 
