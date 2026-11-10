@@ -6648,8 +6648,13 @@ button:focus-visible,a:focus-visible,select:focus-visible,[tabindex="0"]:focus-v
 
 /* Filtros */
 .co-filters{align-items:flex-start;overflow:visible}
-.yr-field{width:260px}
-.yr-range{display:flex;gap:8px}
+.yr-field{width:400px;max-width:100%}
+.yr-range{display:flex;align-items:center;gap:8px}
+.yr-to{color:var(--naowee-color-text-secondary,#5b6270);font-size:14px}
+.yr-msg{margin:6px 0 0;font-size:12px;color:var(--naowee-color-text-secondary,#5b6270)}.yr-msg:empty{display:none}
+.yr-sel span{white-space:nowrap}.yr-sel select:disabled{opacity:.6}
+.yr-err{display:flex;flex-direction:column;align-items:center;gap:12px}
+@media(max-width:640px){.yr-range{flex-direction:column;align-items:stretch}.yr-to{display:none}}
 .yr-sel{display:flex;flex:1;align-items:center;gap:6px;min-height:40px;padding:0 10px;border:1px solid var(--naowee-color-interactive-border-default,#c5c9d1);border-radius:8px;font-size:14px}
 .yr-sel span{color:var(--naowee-color-text-secondary,#5b6270)}
 .yr-sel select{flex:1;min-width:0;border:0;background:transparent;font:inherit;color:inherit}
@@ -7314,9 +7319,11 @@ html.is-embed .main, html.is-embed .page { overflow: visible; }
         <div class="filter-field yr-field">
           <span class="filter-label" id="yrLbl">Periodo</span>
           <div class="yr-range" role="group" aria-labelledby="yrLbl">
-            <label class="yr-sel"><span>Desde</span><select id="yrFrom"></select></label>
-            <label class="yr-sel"><span>Hasta</span><select id="yrTo"></select></label>
+            <label class="yr-sel"><span>Año inicial</span><select id="yrFrom"></select></label>
+            <span class="yr-to" aria-hidden="true">a</span>
+            <label class="yr-sel"><span>Año final</span><select id="yrTo"></select></label>
           </div>
+          <p class="yr-msg" id="yrMsg" role="status" aria-live="polite"></p>
         </div>
         <div class="filter-field ev-field">
           <span class="filter-label" id="evLbl">Eventos a comparar</span>
@@ -8012,7 +8019,8 @@ function renderAll(){
   renderPicker();
   const A = aggregate(selection()); LAST_A = A;
   if(!A.sel.length){
-    $('kpis').innerHTML = '<div class="empty-block">Elige al menos un evento en el buscador.</div>'; $('insight').hidden = true;
+    const lo = Math.min(...state.years), hi = Math.max(...state.years);
+    $('kpis').innerHTML = rangeEvents().length ? '<div class="empty-block">Elige al menos un evento en el buscador.</div>' : `<div class="empty-block">Sin datos para ${lo === hi ? lo : lo + ' – ' + hi}.</div>`; $('insight').hidden = true;
   } else renderPanorama(A);
   renderSummary(A); renderEvents(A); renderSports(A); renderGender(A); renderAthletes(A); renderPotential(A);
   requestAnimationFrame(() => document.querySelectorAll('.naowee-segment').forEach(s => positionPill(s, false)));
@@ -8036,13 +8044,31 @@ function onSegment(id, fn){
 // Periodo Desde – Hasta (por defecto, solo el año más reciente); al cambiar, el dashboard se recalcula sin pasos extra
 function renderYears(){
   const lo = Math.min(...state.years), hi = Math.max(...state.years), opts = (sel) => YEARS.map(y => `<option value="${y}"${y === sel ? ' selected' : ''}>${y}</option>`).join('');
-  $('yrFrom').innerHTML = opts(lo); $('yrTo').innerHTML = opts(hi);
+  $('yrFrom').innerHTML = opts(lo);
+  $('yrTo').innerHTML = YEARS.map(y => `<option value="${y}"${y === hi ? ' selected' : ''}${y < lo ? ' disabled' : ''}>${y}</option>`).join('');
 }
+// PROD-62: ?rangoError=1 simula la primera consulta fallida; la selección se conserva y se puede reintentar.
+let busy = false, falla = /[?&]rangoError=1/.test(location.search), reintentar = null;
 function setPeriodo(from, to, cambio){
-  if(from > to){ if(cambio === 'from') to = from; else from = to; }   // el que se acaba de mover arrastra al otro
+  if(busy) return;
+  let msg = '';
+  if(from > to){
+    if(cambio === 'from'){ to = from; msg = `El año final se ajustó a ${from} para que no sea menor que el inicial.`; }
+    else { from = to; msg = `El año inicial se ajustó a ${to} para que no sea mayor que el final.`; }
+  }
   state.years = new Set(YEARS.filter(y => y >= from && y <= to));
-  state.selected = new Set(rangeEvents().map(x => x.code)); renderYears(); renderAll();
+  state.selected = new Set(rangeEvents().map(x => x.code));
+  renderYears(); $('yrMsg').textContent = msg;
+  busy = true; ['yrFrom', 'yrTo'].forEach(i => $(i).disabled = true);
+  $('kpis').setAttribute('aria-busy', 'true'); $('kpis').innerHTML = '<div class="empty-block" role="status">Actualizando el Dashboard…</div>';
+  reintentar = () => setPeriodo(from, to, cambio);
+  setTimeout(() => {
+    busy = false; ['yrFrom', 'yrTo'].forEach(i => $(i).disabled = false); $('kpis').removeAttribute('aria-busy');
+    if(falla){ $('kpis').innerHTML = '<div class="empty-block yr-err" role="alert"><span>No pudimos actualizar el Dashboard. Tu selección se conserva.</span><button type="button" class="naowee-btn naowee-btn--quiet" id="yrRetry">Reintentar</button></div>'; return; }
+    renderAll();
+  }, 450);
 }
+$('kpis').addEventListener('click', e => { if(e.target.closest('#yrRetry')){ falla = false; reintentar && reintentar(); } });
 renderYears();
 $('yrFrom').addEventListener('change', () => setPeriodo(+$('yrFrom').value, +$('yrTo').value, 'from'));
 $('yrTo').addEventListener('change', () => setPeriodo(+$('yrFrom').value, +$('yrTo').value, 'to'));
