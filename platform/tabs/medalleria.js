@@ -4,7 +4,7 @@
   window.Tabs = window.Tabs || {};
   var RL = window.MED_ROLES || null; /* solo lo define roles.html */
 
-  var VISTA_DEP = 7, VISTA_GEN = 7;
+  var VISTA_DEP = 7, VISTA_GEN = 7, VISTA_VIS = 5; /* filas completas visibles antes del «Mostrar todos» */
   var SEXO = { F: 'Mujeres', M: 'Hombres', X: 'Mixtas', U: 'Sin género' };
   var NA = 'Sin datos disponibles';
 
@@ -196,10 +196,9 @@
     var rows = M.deps.filter(function (d) { return d.co; }).sort(function (a, b) {
       return b.co.oro - a.co.oro || b.co.plata - a.co.plata || b.co.bronce - a.co.bronce || a.nombre.localeCompare(b.nombre);
     });
-    var h = '<div class="nwtab-md-sec">' + head('Colombia en cada deporte', RL ? 'Medallas de Colombia en cada deporte' : 'Medallas de Colombia, su peso en los oros del deporte y su puesto en el medallero de ese deporte', '', 'md-dep') + '<section class="nwtab-md-card" aria-labelledby="md-dep">';
+    var h = '<div class="nwtab-md-sec">' + head('Colombia en cada deporte', RL ? 'Medallas de Colombia en cada deporte' : 'Medallas de Colombia, su peso en los oros del deporte y su puesto en el medallero de ese deporte', '', 'md-dep') + (RL ? '<div class="nwtab-md-q"><nwt-searchbox id="md-dep-q" nwt-size="medium"></nwt-searchbox><p class="nwtab-sr" id="md-dep-st" role="status" aria-live="polite"></p></div>' : '') + '<section class="nwtab-md-card" aria-labelledby="md-dep">';
     if (!rows.length) return h + '<div class="nwtab-md-na"><b>Colombia aún no tiene medallas</b><span>Cuando gane la primera, verá aquí en qué deportes.</span></div></section></div>';
     var shown = rows;
-    if (RL) h += '<div class="nwtab-md-q"><nwt-searchbox id="md-dep-q" nwt-size="medium"></nwt-searchbox><p class="nwtab-sr" id="md-dep-st" role="status" aria-live="polite"></p></div>';
     h += '<div class="nwtab-tw"><table class="nwtab-tb nwtab-md-tb nwtab-md-tb--dep"><caption class="nwtab-sr">Medallas de Colombia por deporte</caption><thead><tr><th scope="col" class="nwtab-md-c1">#</th><th scope="col">Deporte</th>' +
       '<th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('oro') + '<span class=\"nwtab-md-th\">Oro</span></span></th><th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('plata') + '<span class=\"nwtab-md-th\">Plata</span></span></th><th scope="col" class="nwtab-r"><span class="nwtab-mh">' + dotMed('bronce') + '<span class=\"nwtab-md-th\">Bronce</span></span></th>' +
       '<th scope="col" class="nwtab-r">' + totalH() + '</th>' + (RL ? '<th scope="col" class="nwtab-md-cx"><span class="nwtab-sr">Detalle por deportista</span></th>' : '<th scope="col" class="nwtab-md-hide-s">Oros del deporte que ganó Colombia</th><th scope="col">Puesto en el deporte</th>') + '</tr></thead><tbody>';
@@ -212,8 +211,7 @@
         (RL ? '<td class="nwtab-md-cx"><button type="button" class="nwtab-md-exp" data-md-exp="' + gid + '" data-k="' + gid + '"' + (det.length ? ' aria-controls="' + det.map(function (x, j) { return gid + '-' + j; }).join(' ') + '"' : '') + ' aria-expanded="' + !!(ui.dOpen && ui.dOpen[gid]) + '" aria-label="Quién ganó cada medalla en ' + esc(d.nombre) + '"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5 7.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>' : '<td class="nwtab-md-hide-s">' + (d.oros ? '<span class="nwtab-md-w"><span class="nwtab-md-w__tr" aria-hidden="true"><span style="width:' + w + '%"></span></span><span class="nwtab-md-w__t">' + c.oro + ' de ' + d.oros + '</span></span>' : '<span class="nwtab-md-mut">Sin oros en el deporte</span>') + '</td>' +
         '<td><span class="nwtab-md-badge' + (lead ? ' is-lead' : '') + '">' + ordDe(c.pos) + ' de ' + d.m.length + '</span>' + (lead ? '' : '<small class="nwtab-md-mut nwtab-md-hide-s"> lidera ' + esc(l.paisNombre) + '</small>') + '</td>') + '</tr>';
       det.forEach(function (x, j) {
-        h += '<tr class="nwtab-md-det' + (j % 2 ? ' nwtab-md-det--z' : '') + (j === det.length - 1 ? ' nwtab-md-det--end' : '') + '" id="' + gid + '-' + j + '" data-g="' + gid + '" data-qd="' + esc(N.norm(d.nombre)) + '"' + (ui.dOpen && ui.dOpen[gid] ? '' : ' hidden') + '><td></td><td colspan="6"><div class="nwtab-md-dg"><span class="nwtab-dn">' + esc(x.n) + '</span><span class="nwtab-md-mut">' + esc(x.p) + '</span>' +
-          '<span class="nwtab-md-dm">' + dotMed(x.m) + '<span>' + { oro: 'Oro', plata: 'Plata', bronce: 'Bronce' }[x.m] + '</span></span><span class="nwtab-md-mut">' + esc(SEXO[x.s] || '—') + '</span></div></td></tr>';
+        h += '<tr class="nwtab-md-det' + (j % 2 ? ' nwtab-md-det--z' : '') + (j === det.length - 1 ? ' nwtab-md-det--end' : '') + '" id="' + gid + '-' + j + '" data-g="' + gid + '" data-qd="' + esc(N.norm(d.nombre)) + '"' + (ui.dOpen && ui.dOpen[gid] ? '' : ' hidden') + '><td></td><td colspan="6"><div class="nwtab-md-li"><span class="nwtab-md-li__m">' + OLC.medalla({ oro: 'gold', plata: 'silver', bronce: 'bronze' }[x.m], 'none', 27) + '</span><span class="nwtab-md-li__t"><span class="nwtab-dn">' + esc(x.n) + '</span><span class="nwtab-md-mut">' + { oro: 'Oro', plata: 'Plata', bronce: 'Bronce' }[x.m] + ' · ' + esc(x.p) + ' · ' + esc(SEXO[x.s] || '—') + '</span></span></div></td></tr>';
       });
     });
     h += '</tbody></table></div>';
@@ -301,10 +299,10 @@
   function convFilas(ins, g) {
     var f = [['Mujeres', g.F, ins.F, 'var(--md-f)'], ['Hombres', g.M, ins.M, 'var(--md-m)'], ['Mixtas', g.X, ins.X, 'var(--md-x)']].filter(function (r) { return r[2] > 0; });
     var best = f.reduce(function (a, r) { var c = r[2] ? r[1] / r[2] : 0; return c > a ? c : a; }, 0);
-    return '<ul class="nwtab-md-conv"><li class="nwtab-md-conv__h" aria-hidden="true"><span>Género</span><span>Proporción</span><span>Por cada 100</span><span>Medallas / inscr.</span></li>' + f.map(function (r) {
+    return '<div class="nwtab-tw"><table class="nwtab-tb nwtab-md-tb nwtab-md-tb--conv"><caption class="nwtab-sr">Medallas de Colombia por cada 100 participaciones, por género</caption><thead><tr><th scope="col">Género</th><th scope="col" class="nwtab-md-hide-s">Proporción</th><th scope="col" class="nwtab-r">Por cada 100</th><th scope="col" class="nwtab-r">Medallas / inscr.</th></tr></thead><tbody>' + f.map(function (r) {
       var c = Math.round(r[1] / r[2] * 100), top = r[2] && r[1] / r[2] === best && f.length > 1;
-      return '<li><span class="nwtab-md-conv__l">' + r[0] + '</span><span class="nwtab-md-conv__t" role="img" aria-label="' + c + ' medallas por cada 100 participaciones de ' + r[0].toLowerCase() + '"><i style="width:' + Math.min(100, c) + '%;background:' + r[3] + '"></i></span><b class="' + (top ? 'is-best' : '') + '">' + c + '</b><small>' + r[1] + ' de ' + r[2] + '</small></li>';
-    }).join('') + '</ul>';
+      return '<tr><td><span class="nwtab-dn">' + r[0] + '</span></td><td class="nwtab-md-hide-s"><span class="nwtab-md-conv__t" role="img" aria-label="' + c + ' medallas por cada 100 participaciones de ' + r[0].toLowerCase() + '"><i style="width:' + Math.min(100, c) + '%;background:' + r[3] + '"></i></span></td><td class="nwtab-r"><b class="nwtab-n' + (top ? ' is-best' : '') + '">' + c + '</b></td><td class="nwtab-r"><span class="nwtab-md-mut">' + r[1] + ' de ' + r[2] + '</span></td></tr>';
+    }).join('') + '</tbody></table></div>';
   }
 
   /* Tooltip de información (arriba a la derecha de la tarjeta): hover, foco de teclado o toque. */
@@ -319,7 +317,7 @@
     var h = '<div class="nwtab-md-sec">' + head('Medallas por género', 'Cuántas medallas ganó Colombia en pruebas de cada género. El género sale del sexo registrado en la prueba; una medalla de equipo cuenta una vez por cada integrante registrado.', '', 'md-gen') + '<section class="nwtab-md-card" aria-labelledby="md-gen">';
     if (!total) return h + '<div class="nwtab-md-na"><b>Colombia aún no tiene medallas</b><span>El desglose por género aparece con la primera medalla.</span></div></section></div>';
     h += '<div class="nwtab-md-gen__blk">' + barra([{ t: 'Mujeres', n: g.F, c: 'var(--md-f)' }, { t: 'Hombres', n: g.M, c: 'var(--md-m)' }, { t: 'Mixtas', n: g.X, c: 'var(--md-x)' }].concat(g.U ? [{ t: 'Sin género en la prueba', n: g.U, c: 'var(--md-u)' }] : []), total, 'Medallas de Colombia') + '</div></section>' +
-      '<section class="nwtab-md-card" aria-labelledby="md-gen">' + '<div class="nwtab-md-gen__blk"><p class="nwtab-md-sub">Medallas por cada 100 participaciones</p>' + convFilas(M.insG, g) + '</div></section>';
+      head('Medallas por cada 100 participaciones', '', '', 'md-g100') + '<section class="nwtab-md-card" aria-labelledby="md-g100">' + convFilas(M.insG, g) + '</section>';
     var rows = M.gRows, shown = rows, maxT = rows[0].t;
     var tg = '<div class="nwtab-tw"><table class="nwtab-tb nwtab-md-tb nwtab-md-tb--gen"><caption class="nwtab-sr">Medallas de Colombia por deporte y género</caption><thead><tr><th scope="col">Deporte</th><th scope="col" class="nwtab-md-hide-s">Medallas por género</th>' +
       '<th scope="col" class="nwtab-r">' + sx('F', 'Mujeres') + '</th><th scope="col" class="nwtab-r">' + sx('M', 'Hombres') + '</th><th scope="col" class="nwtab-r">' + sx('X', 'Mixtas') + '</th><th scope="col" class="nwtab-r">Total</th></tr></thead><tbody>';
@@ -330,7 +328,7 @@
         '<td class="nwtab-r"><b class="nwtab-n nwtab-n--t">' + r.t + '</b></td></tr>';
     });
     tg += '</tbody></table></div>';
-    h += '<section class="nwtab-md-card" aria-labelledby="md-gen"><div class="nwtab-md-gen__blk"><p class="nwtab-md-sub">Medallas por deporte</p>' + (rows.length > VISTA_GEN ? recorte(tg, rows.length, ui.gen, 'gen') : tg) + '</div></section>'; /* DC-011: 3 cards */
+    h += head('Medallas por deporte', '', '', 'md-gdep') + '<section class="nwtab-md-card" aria-labelledby="md-gdep">' + (rows.length > VISTA_GEN ? recorte(tg, rows.length, ui.gen, 'gen') : tg) + '</section>'; /* DC-011: 3 cards */
     return h + '</div>';
   }
 
@@ -396,7 +394,14 @@
 
   function render(el, ctx) {
     var data = ctx.data, ui = ctx.ui.md = ctx.ui.md || {}, nCol = data.colombia ? data.colombia.participa : 0;
-    var M = calcular(data), modo = ui.modo || 'consulta', h = '<section class="nwtab-tab nwtab-md-root" aria-label="Medallería">' + barraModo(modo, data);
+    var M = null, fallo = !ui.reintento && /[?&]medError=1/.test(location.search + location.hash);
+    try { if (!fallo) M = calcular(data); } catch (e) { fallo = true; }
+    if (fallo) { /* Estado de error: se puede forzar con ?medError=1 para revisarlo en la demo. */
+      el.innerHTML = '<section class="nwtab-tab nwtab-md-root" aria-label="Medallería"><div class="nwtab-md-sec"><nwt-alert nwt-theme="negative" role="alert">No pudimos cargar la medallería. Revisa tu conexión e inténtalo de nuevo.</nwt-alert><nwt-button id="md-reintentar" nwt-variant="outline">Reintentar</nwt-button></div></section>';
+      var rb = el.querySelector('#md-reintentar'); if (rb) rb.addEventListener('click', function () { ui.reintento = true; window.Tabs['medalleria'].render(el, ctx); });
+      return;
+    }
+    var modo = ui.modo || 'consulta', h = '<section class="nwtab-tab nwtab-md-root" aria-label="Medallería">' + barraModo(modo, data);
     lastUi = ui;
     var raiz = el.closest('.nws-event-detail'); if (raiz) raiz.classList.toggle('is-registro', modo === 'captura');
     var bindModo = function () {
@@ -444,13 +449,14 @@
         kpi('g', 'podium', co ? ordDe(co.pos) : '—', 'Posición entre ' + plural(nPais, 'país', 'países') + ' con medalla', hintPos) +
         kpi('b', 'ball', co ? lideres : '—', 'Deportes donde fue 1.ª', 'de ' + plural(M.deps.length, 'deporte', 'deportes') + ' con medalla');
     h += (bloqueRegistro() ? '<div class="nwtab-md-sec">' + bloqueRegistro() + '</div>' : '') + '<div class="nwtab-md-top' + (RL && !RL.verPaises ? ' nwtab-md-top--solo' : '') + '"><div class="nwtab-md-sec">' + head('Indicadores', '', '', 'md-kpi') + '<div class="nwtab-md-kpis">' + kpis + '</div></div>' + (RL && !RL.verPaises ? '' : secPais(M, !!RL)) + '</div>';
-    h += secCerca(M, nCol);
-    h += secDeportes(M, ui) + (RL ? '' : secRival(M, ui)) + secGenero(M, ui) + (RL && !RL.verPaises ? '' : secCompleto(M, data)) + '</section>';
+    /* Con roles, «Medallas que estuvieron cerca» va al final: es análisis secundario. */
+    if (RL) h += secDeportes(M, ui) + secGenero(M, ui) + (RL.verPaises ? secCompleto(M, data) : '') + secCerca(M, nCol) + '</section>';
+    else h += secCerca(M, nCol) + secDeportes(M, ui) + secRival(M, ui) + secGenero(M, ui) + secCompleto(M, data) + '</section>';
     el.innerHTML = h; bindModo();
 
     el.querySelectorAll('.nwtab-md-clipw.is-clip').forEach(function (w) {
-      var tr = w.querySelectorAll('tbody tr'), v = w.querySelector('.nwtab-md-clip');
-      function medir() { if (tr[VISTA_GEN]) { var r = tr[VISTA_GEN].getBoundingClientRect(); v.style.maxHeight = (r.top - v.getBoundingClientRect().top + v.scrollTop + r.height * 2.2) + 'px'; } }
+      var tr = w.querySelectorAll('tbody tr:not([data-g])'), v = w.querySelector('.nwtab-md-clip'); /* sin las filas de detalle, que van ocultas */
+      function medir() { if (tr[VISTA_VIS]) { var r = tr[VISTA_VIS].getBoundingClientRect(); v.style.maxHeight = (r.top - v.getBoundingClientRect().top + v.scrollTop + r.height * 0.9) + 'px'; } }
       medir();
       if (window.ResizeObserver) { var ro = new ResizeObserver(medir); ro.observe(w); w._ro = ro; }
     });

@@ -80,7 +80,7 @@
 /* Card cuyo primer elemento es la tabla: va pegada a los bordes; lo que sigue lleva su margen. */
 .nwtab-md-card:has(> .nwtab-tw:first-child, > .nwtab-md-clipw:first-child, > .nwtab-md-ct:first-child) { padding: 0; gap: 0; overflow: hidden; }
 .nwtab-md-card > .nwtab-md-aviso { margin: 16px; }
-.nwtab-md-card .nwtab-md-ov { padding-bottom: 12px; }
+.nwtab-md-card .nwtab-md-ov { padding-bottom: 24px; }
 .nwtab-md-card:has(> .nwtab-tw:first-child, > .nwtab-md-clipw:first-child, > .nwtab-md-ct:first-child) tr > :first-child { padding-left: 16px; }
 .nwtab-md-card:has(> .nwtab-tw:first-child, > .nwtab-md-clipw:first-child, > .nwtab-md-ct:first-child) tr > :last-child { padding-right: 16px; }
 /* Tablas: la cabecera y las filas salen de .nwtab-tb / .nw-table (mismo look que Calendario). */
@@ -355,7 +355,7 @@
 @container nws (max-width: 440px) { .nwtab-md-top--solo .nwtab-md-kpis { grid-template-columns: minmax(0, 1fr); } }
 
 /* Colombia en cada deporte (roles): buscador y detalle por deportista */
-.nwtab-md-q { padding: 16px 16px 4px; }
+.nwtab-md-q { padding: 0 0 12px; }
 .nwtab-md-q nwt-searchbox { display: block; width: 100%; }
 .nwtab-md-tb--dep tbody tr.nwtab-md-row { cursor: pointer; }
 .nwtab-md-tb.nwtab-md-tb--dep tbody tr.nwtab-md-row:hover td { background: color-mix(in srgb, var(--nwtab-pri) 7%, #fff); }
@@ -364,14 +364,11 @@
 
 .nwtab-md-ico { display: inline-flex; vertical-align: middle; margin-right: 8px; color: var(--naotech-color-text-secondary, #5b6472); }
 
-/* Detalle por deportista: rejilla propia, independiente de las columnas de medallas de la tabla */
-.nwtab-md-dg { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 140px 110px; gap: 4px 16px; align-items: center; padding: 6px 0; }
-.nwtab-md-dg .nwtab-md-mut { font-weight: 400; font-size: 14px; }
-.nwtab-md-tb tbody tr.nwtab-md-det td[colspan] { vertical-align: middle; }
-@container nws (max-width: 640px) {
-  .nwtab-md-dg { grid-template-columns: minmax(0, 1fr) auto; padding-right: 8px; }
-  .nwtab-md-dg > :nth-child(3) { order: 2; justify-self: end; } .nwtab-md-dg > :nth-child(2) { order: 3; } .nwtab-md-dg > :nth-child(4) { order: 4; justify-self: end; }
-}
+/* Detalle por deportista como lista: medalla, nombre y una línea con medalla, prueba y género */
+.nwtab-md-li { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
+.nwtab-md-li__m { display: inline-flex; flex: none; }
+.nwtab-md-li__t { display: flex; flex-direction: column; min-width: 0; }
+.nwtab-md-li__t .nwtab-md-mut { font-size: 14px; font-weight: 400; }
 @container nws (max-width: 640px) {
   .nwtab-md-det .nwtab-dg { flex-wrap: nowrap; gap: 0; }
   .nwtab-md-det .nwtab-dg > span:last-child { min-width: 0; overflow-wrap: anywhere; }
@@ -381,3 +378,7 @@
   .nwtab-md-tb th.nwtab-md-cx, .nwtab-md-tb td.nwtab-md-cx { width: 44px; padding-left: 0; padding-right: 0; }
   .nwtab-md-det__sp .nwtab-md-ico { margin-right: 0; }
 }
+#md-reintentar { margin-top: 12px; }
+
+.nwtab-md-ck:not(.nwtab-md-ck--leg) { justify-content: flex-end; }
+.nwtab-md-tb--conv b.is-best { color: #1f7a2a; }
