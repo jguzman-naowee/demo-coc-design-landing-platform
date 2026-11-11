@@ -266,8 +266,9 @@ body{overflow-x:clip}
 .nws-sidebar{position:sticky;top:0;height:100vh;flex:0 0 auto;--naotech-divider-height:var(--naotech-sizing-48)}
 .nws-sidebar.nwt-sidebar--mode-drawer{position:fixed}
 .nws-content{display:flex;flex:1 1 0;flex-direction:column;min-width:0}
-.nws-logo{display:flex;align-items:center;justify-content:flex-end;width:100%}
-.nws-logo__entity{height:var(--naotech-sizing-56);width:auto}
+.nws-logo{display:flex;align-items:center;width:100%;min-width:0}
+/* El webp trae 9px de aire a cada lado (de 600): se compensa para que el trazo toque la flecha y el borde. */
+.nws-logo__entity{flex:none;width:calc(100% * 600 / 582);height:auto;margin-inline:calc(-100% * 9 / 582)}
 .nwt-sidebar__toolbar__logo:has(>.nws-logo){flex:1}
 .nws-head{position:sticky;top:0;z-index:41;display:flex;align-items:center;background:var(--naotech-app-background);border-bottom:var(--naotech-app-border-1-200)}
 .nws-head .nws-topbar{flex:1 1 auto;min-width:0;border-bottom:0}
